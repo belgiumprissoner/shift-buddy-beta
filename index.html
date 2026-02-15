@@ -495,7 +495,10 @@
 
 <label for="normDayInput">Norm dag (u:min)</label>
 <input id="normDayInput" type="text" value="7:30" placeholder="bv 7:30" />
-        <div class="hr"></div>
+      <div class="row" style="margin-top:12px;">
+  <button class="btnGhost" id="btnSaveSettings2">Instellingen opslaan</button>
+</div>
+  <div class="hr"></div>
 
         <div class="h2Row">
           <div>
@@ -672,7 +675,7 @@ const elNormDayInput   = document.getElementById("normDayInput");
   document.querySelectorAll(".tabBtn").forEach(btn=>{
     btn.addEventListener("click", ()=> showTab(btn.dataset.tab));
   });
-
+document.getElementById("btnSaveSettings2")?.addEventListener("click", saveSettings);
   const pad2 = n => String(n).padStart(2,"0");
   function ymd(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
   function dmy(d){ return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`; }
