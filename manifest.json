@@ -1,0 +1,21 @@
+{
+  "name": "Shift Buddy",
+  "short_name": "Shift Buddy",
+  "start_url": "/shift-buddy/",
+  "scope": "/shift-buddy/",
+  "display": "standalone",
+  "background_color": "#12070b",
+  "theme_color": "#12070b",
+  "icons": [
+    {
+      "src": "sb-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "sb-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

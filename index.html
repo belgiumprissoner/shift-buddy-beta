@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Shift Buddy</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12070b">
+
+  <style>
+    :root{
+      --bg: #14080b;
+      --panel: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --muted2: rgba(255,255,255,.50);
+
+      --green:#32d36e;
+      --red:#ff5b5b;
+      --blue:#3f79ff;
+      --whitebtn:rgba(255,255,255,.88);
+      --shadow: 0 14px 40px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text);
+
+      /*  1 kleur vibe: bordeaux/rood, geen groen/blauw streep */
+      background: linear-gradient(180deg, #1a0a10, #12070b 55%, #0b0406);
+      overflow-x:hidden;
+    }
+    .wrap{width:100%; max-width:820px; margin:0 auto; padding:18px 16px 28px;}
+    .top{
+      display:flex; align-items:flex-end; justify-content:space-between;
+      gap:12px; flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .title{min-width:0}
+    .title h1{margin:0; font-size:34px; line-height:1.05; letter-spacing:.2px}
+    .title .sub{margin-top:6px; color:var(--muted); font-size:13px}
+    .pill{
+      min-width:0; max-width:100%;
+      padding:10px 12px; border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      border-radius:999px;
+      display:flex; gap:8px; align-items:center;
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
+    }
+
+    .tabs{
+      width:100%;
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:12px;
+      margin:14px 0 14px;
+    }
+    .tabBtn{
+      padding:14px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color:var(--text);
+      font-weight:800;
+      letter-spacing:.2px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.22);
+      cursor:pointer;
+    }
+    .tabBtn.active{
+      outline: 2px solid rgba(255,120,150,.28);
+      background: rgba(255,255,255,.07);
+    }
+
+    .card{
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
+      box-shadow: var(--shadow);
+      padding:16px;
+      overflow:hidden;
+    }
+    .h2Row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    h2{margin:0; font-size:30px}
+    .muted{color:var(--muted)}
+    .muted2{color:var(--muted2)}
+    .hr{height:1px; background:var(--line); margin:14px 0}
+    .sp{height:12px}
+
+    .bigTimer{
+      width:100%;
+      text-align:center;
+      font-weight:950;
+      letter-spacing:1px;
+      font-size: clamp(54px, 12vw, 92px);
+      line-height:1.1;
+      padding:8px 0 6px;
+      white-space:nowrap;
+    }
+
+    .row{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:stretch}
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius:18px;
+      padding:16px 18px;
+      font-weight:950;
+      letter-spacing:.2px;
+      width:100%;
+      max-width: 620px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+    }
+    .btnHalf{max-width: 302px}
+    .btnStart{background:var(--green); color:#06140d;}
+    .btnPause{background:var(--red); color:#1a0707;}
+    .btnSave{background:var(--whitebtn); color:#111;}
+    .btnRecup{background:var(--blue); color:#fff;}
+    .btnGhost{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--text);
+    }
+    .btnSmall{
+      padding:10px 12px; border-radius:14px; font-weight:900;
+      background: rgba(255,255,255,.06); border:1px solid var(--line); color:var(--text);
+      width:auto;
+      box-shadow:none;
+    }
+    .btnDanger{
+      background: rgba(255,80,80,.18);
+      border:1px solid rgba(255,80,80,.35);
+      color: rgba(255,255,255,.92);
+    }
+
+    label{display:block; margin-top:12px; font-weight:800; color:var(--muted)}
+    input, select{
+      width:100%;
+      margin-top:8px;
+      padding:14px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.9);
+      color:#0e0e0e;
+      font-size:16px;
+      outline:none;
+    }
+#mStart,
+#mEnd {
+ min-width: 0;
+}
+    .status{
+      text-align:center;
+      margin:10px 0 0;
+      font-weight:900;
+      color:var(--muted);
+    }
+
+    .grid3{
+      display:grid;
+     grid-template-columns: repeat(2, 1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+    @media (min-width:1040px){
+      .grid3{grid-template-columns: repeat(3, minmax(0,1fr));}
+    }
+    .miniCard{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      border-radius:18px;
+      padding:14px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+    }
+    .miniCard .k{color:var(--muted); font-weight:900; margin-bottom:6px}
+    .miniCard .v{font-size:54px; font-weight:950; letter-spacing:.5px; line-height:1}
+    .miniCard .v.sm{font-size:40px}
+
+    .list{margin-top:12px}
+    .entry{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      border-radius:18px;
+      padding:14px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+    }
+    .entry + .entry{margin-top:10px}
+    .entry .left{min-width:0}
+    .entry .t1{font-size:26px; font-weight:950; line-height:1.05}
+    .entry .t2{margin-top:6px; color:var(--muted); font-weight:900}
+    .entry .right{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    .chip{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      font-weight:950;
+      min-width:72px;
+      text-align:center;
+      box-shadow: 0 10px 20px rgba(0,0,0,.18);
+    }
+
+    .footer{
+      margin-top:14px;
+      text-align:center;
+      color:var(--muted2);
+      font-size:12px;
+    }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border:1px solid var(--line);
+      border-radius:999px; background: rgba(255,255,255,.05);
+      font-weight:900; color:var(--muted);
+    }
+    .ok{color: rgba(50,211,110,.95);}
+    .warn{color: rgba(255,204,102,.95);}
+    .salpos{ color: rgba(50,211,110,.95); }
+    .salneg{ color: rgba(255,91,91,.95); }
+    .salzero{ color: rgba(255,255,255,.92); }
+
+    /* Modal */
+    .modalBack{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:99;
+    }
+    .modal{
+      width:100%;
+      max-width:680px;
+      border-radius:22px;
+      border:1px solid var(--line);
+      background: #1a0a10;
+      box-shadow: 0 20px 70px rgba(0,0,0,.6);
+      padding:16px;
+    }
+    .modal h3{margin:0; font-size:22px}
+    .modal .row2{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px}
+    .modal .row3{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px}
+    @media (max-width:520px){
+      .modal .row2,.modal .row3{grid-template-columns:1fr}
+    }
+    .modalActions{display:flex; gap:12px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap}
+ .app-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.app-logo{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+}
+/* ===== Custom Toast + Confirm Modal ===== */
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(20,8,11,.92);
+  border: 1px solid rgba(255,255,255,.10);
+  color: rgba(255,255,255,.92);
+  padding: 12px 14px;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.55);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+  max-width: min(92vw, 520px);
+  font-weight: 700;
+}
+
+.toast.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.ok{ border-color: rgba(46,204,113,.35); }
+.toast.warn{ border-color: rgba(255,184,0,.35); }
+.toast.err{ border-color: rgba(255,99,99,.35); }
+
+.appModalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  padding: 18px;
+}
+
+.appModalOverlay.show{ display: flex; }
+
+.appModal{
+  width: min(560px, 94vw);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 18px;
+  box-shadow: 0 22px 70px rgba(0,0,0,.60);
+  overflow: hidden;
+}
+
+.appModalHeader{
+  padding: 14px 16px;
+  font-size: 18px;
+  font-weight: 900;
+  color: rgba(255,255,255,.95);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.appModalBody{
+  padding: 14px 16px;
+  color: rgba(255,255,255,.86);
+  line-height: 1.35;
+}
+
+.appModalActions{
+  padding: 14px 16px 16px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btnGhost{
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  color: rgba(255,255,255,.90);
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 900;
+}
+
+.btnDanger{
+  background: rgba(255,99,99,.20);
+  border: 1px solid rgba(255,99,99,.35);
+  color: rgba(255,255,255,.95);
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 900;
+}
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="title">
+      <div class="app-header">
+  <img src="sb-logo.png" alt="Shift Buddy logo" class="app-logo">
+  <h1>Shift Buddy</h1>
+</div>
+        <div class="sub">Norm 7u30 - RECUP = 7u30 (1 klik) - offline-first - Made by Kim Gijs </div>
+      </div>
+      <div class="pill"><b>Vandaag:</b> <span id="todayPill">-</span></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tabBtn active" data-tab="tab1">Dag-Shift</div>
+      <div class="tabBtn" data-tab="tab2">Historiek</div>
+      <div class="tabBtn" data-tab="tab3">Saldo</div>
+      <div class="tabBtn" data-tab="tab4">Backup & Login</div>
+    </div>
+
+    <div id="tab1" class="tab">
+      <div class="card">
+        <div class="bigTimer" id="timer">00:00:00</div>
+
+        <div class="row">
+          <button class="btnStart btnHalf" id="btnStart">START</button>
+          <button class="btnPause btnHalf" id="btnPause">PAUZE</button>
+        </div>
+
+        <div class="sp"></div>
+
+        <div class="row">
+          <button class="btnSave" id="btnSave">OPSLAAN WERK</button>
+        </div>
+
+        <div class="sp"></div>
+
+        <div class="row">
+          <button class="btnRecup" id="btnRecup">RECUP (7u30)</button>
+        </div>
+
+        <div class="status" id="status">Nog niet gestart</div>
+
+        <label for="pauseMin">Pauze (min) - wordt afgetrokken bij Opslaan Werk</label>
+        <input id="pauseMin" type="number" min="0" step="5" value="30" />
+
+        <div class="grid3">
+          <div class="miniCard">
+            <div class="k">Vandaag (werk)</div>
+            <div class="v" id="todayWork">0:00</div>
+          </div>
+          <div class="miniCard">
+            <div class="k">Deze week (werk)</div>
+            <div class="v" id="weekWork">0:00</div>
+          </div>
+          <div class="miniCard">
+            <div class="k">Overuren saldo</div>
+            <div class="v sm salzero" id="overtimeSaldo">0:00</div>
+          </div>
+        </div>
+
+        <div class="miniCard" style="margin-top:12px;">
+          <div class="k">Laatste entry</div>
+          <div id="lastEntry" class="muted" style="font-weight:950; margin-top:6px;">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab2" class="tab" style="display:none;">
+      <div class="card">
+        <div class="h2Row">
+  <h2>Historiek</h2>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <button class="btnSmall" id="btnAddManual">+ Handmatig</button>
+  </div>
+</div>
+        <div class="muted">Alles staat lokaal op je toestel. Export JSON = jouw -nooit kwijt- backup.</div>
+        <div class="list" id="historyList"></div>
+      </div>
+    </div>
+
+    <div id="tab3" class="tab" style="display:none;">
+      <div class="card">
+        <div class="h2Row">
+          <h2>Saldo</h2>
+          <span class="badge"><span id="normBadge">Norm: 7:30</span></span>
+        </div>
+
+        <div class="grid3" style="grid-template-columns:1fr;">
+          <div class="miniCard">
+            <div class="k">Overuren saldo</div>
+            <div class="v" id="saldoBig">0:00</div>
+          </div>
+          <div class="miniCard">
+            <div class="k">Recup dagen</div>
+            <div class="v" id="recupDays">0</div>
+          </div>
+        </div>
+
+        <div class="muted2" style="margin-top:12px; font-weight:900;">
+          Logica:
+          <br>- Per kalenderdag telt werk(net) mee.
+          <br>- Boven 7:30 = plus overuren, eronder = tekort gaat van overuren af.
+          <br>- RECUP = 7:30 op overuren.
+        </div>
+      </div>
+    </div>
+
+    <!--  TAB 4: Herstellen is nu -chte Import JSON -->
+    <div id="tab4" class="tab" style="display:none;">
+      <div class="card">
+        <div class="h2Row">
+          <h2>Backup & Login</h2>
+          <span class="badge" id="onlineBadge">Status: -</span>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="h2Row">
+          <div>
+            <div class="muted" style="font-weight:950;">Backups</div>
+            <div class="muted2" id="lastBackupText">Laatste backup: nooit</div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btnSmall" id="btnBackupNow">Backup nu</button>
+
+            <!--  -chte file picker via label/input -->
+            <label class="btnSmall" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+              Import JSON
+              <input id="fileImport2" type="file" accept="application/json" style="display:none;">
+            </label>
+          </div>
+        </div>
+
+        <div class="muted2" style="margin-top:10px; font-weight:900;">
+          Tip: gebruik Backup nu en sla het JSON bestand op in Google Drive. Dan kan je altijd importeren op een andere gsm.
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="h2Row">
+          <div>
+            <div class="muted" style="font-weight:950;">Startsaldo</div>
+            <div class="muted2">Voorbeeld: 60:00 = 60 uur</div>
+          </div>
+        </div>
+        <label for="startSaldoInput">Start saldo overuren (u:min)</label>
+        <input id="startSaldoInput" type="text" value="0:00" placeholder="bv 60:00" />
+        <div class="row" style="margin-top:12px;">
+          <button class="btnGhost" id="btnSaveSettings">Instellingen opslaan</button>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="h2Row">
+          <div>
+            <div class="muted" style="font-weight:950;">Google login + Cloud sync</div>
+            <div class="muted2" id="loginNote">
+              Werkt pas betrouwbaar als je app via https draait (gehost). Lokaal kan geblokkeerd worden.
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btnGhost" id="btnGoogleLogin">Inloggen met Google</button>
+          <button class="btnGhost" id="btnGoogleLogout" style="display:none;">Uitloggen</button>
+        </div>
+
+        <div class="sp"></div>
+
+        <div class="row">
+          <button class="btnGhost" id="btnCloudPull">Cloud  toestel (download)</button>
+          <button class="btnGhost" id="btnCloudPush">Toestel  cloud (upload)</button>
+        </div>
+
+        <div class="footer">Shift Buddy - Made by <b>Kim Gijs</b> </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modalBack" id="modalBack">
+    <div class="modal">
+      <div class="h2Row">
+        <h3 id="modalTitle">Handmatig toevoegen</h3>
+        <button class="btnSmall btnDanger" id="btnCloseModal">Sluiten</button>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="modalBody">
+        <div class="modalRow row2" style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px;">
+          <div>
+            <label for="mDate">Datum</label>
+            <input id="mDate" type="date" />
+          </div>
+          <div>
+            <label for="mType">Type</label>
+            <select id="mType">
+              <option value="Werk">Werk</option>
+              <option value="Recup">Recup</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modalRow row3" style="display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; margin-top:10px;">
+          <div>
+            <label for="mStart">Start (HH:MM)</label>
+            <input id="mStart" type="time" />
+          </div>
+          <div>
+            <label for="mEnd">Einde (HH:MM)</label>
+            <input id="mEnd" type="time" />
+          </div>
+          <div>
+            <label for="mPause">Pauze (min)</label>
+            <input id="mPause" type="number" min="0" step="5" value="30"/>
+          </div>
+        </div>
+
+        <div class="muted2" style="margin-top:10px; font-weight:900;">
+          Tip: -vergeten uit te tikken-? Voeg gewoon de juiste tijden toe.
+        </div>
+
+        <div class="modalActions">
+          <button class="btnGhost" id="btnDeleteInModal" style="display:none;">Verwijderen</button>
+          <button class="btnSave" id="btnSaveModal">Opslaan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+(() => {
+  const STORE_KEY = "shiftBuddy_state_v1";
+  const META_KEY  = "shiftBuddy_meta_v1";
+  const NORM_MIN  = 7*60 + 30;
+  const RECUP_MIN = 7*60 + 30;
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCi-qkswsNawKr_-A3FIuxlWqNAUpjYCcs",
+    authDomain: "shiftbuddyproject-ef1dd.firebaseapp.com",
+    projectId: "shiftbuddyproject-ef1dd",
+    storageBucket: "shiftbuddyproject-ef1dd.firebasestorage.app",
+    messagingSenderId: "267425682905",
+    appId: "1:267425682905:web:2e521b1df5ce92245235c8"
+  };
+
+  const defaultState = () => ({
+    settings: { startSaldoMin: 0 },
+    timer: { running:false, startMs:null, accMs:0 },
+    entries: []
+  });
+  const defaultMeta = () => ({
+    lastBackupAt: null,
+    lastBackupName: null
+  });
+
+  let state = loadState();
+  let meta  = loadMeta();
+
+  const elTodayPill     = document.getElementById("todayPill");
+  const elTimer         = document.getElementById("timer");
+  const elStatus        = document.getElementById("status");
+  const elPauseMin      = document.getElementById("pauseMin");
+
+  const elTodayWork     = document.getElementById("todayWork");
+  const elWeekWork      = document.getElementById("weekWork");
+  const elOvertimeSaldo = document.getElementById("overtimeSaldo");
+  const elLastEntry     = document.getElementById("lastEntry");
+
+  const elHistoryList   = document.getElementById("historyList");
+
+  const elSaldoBig      = document.getElementById("saldoBig");
+  const elRecupDays     = document.getElementById("recupDays");
+
+  const btnStart        = document.getElementById("btnStart");
+  const btnPause        = document.getElementById("btnPause");
+  const btnSave         = document.getElementById("btnSave");
+  const btnRecup        = document.getElementById("btnRecup");
+
+  const btnAddManual    = document.getElementById("btnAddManual");
+  const btnExport       = document.getElementById("btnExport");
+  const fileImport      = document.getElementById("fileImport");
+  const fileImport2     = document.getElementById("fileImport2");
+
+  const elOnlineBadge   = document.getElementById("onlineBadge");
+  const elLastBackupText= document.getElementById("lastBackupText");
+  const btnBackupNow    = document.getElementById("btnBackupNow");
+  const elStartSaldoInput = document.getElementById("startSaldoInput");
+  const btnSaveSettings = document.getElementById("btnSaveSettings");
+
+  const btnGoogleLogin  = document.getElementById("btnGoogleLogin");
+  const btnGoogleLogout = document.getElementById("btnGoogleLogout");
+  const btnCloudPull    = document.getElementById("btnCloudPull");
+  const btnCloudPush    = document.getElementById("btnCloudPush");
+  const elLoginNote     = document.getElementById("loginNote");
+
+  const modalBack       = document.getElementById("modalBack");
+  const modalTitle      = document.getElementById("modalTitle");
+  const btnCloseModal   = document.getElementById("btnCloseModal");
+  const btnSaveModal    = document.getElementById("btnSaveModal");
+  const btnDeleteInModal= document.getElementById("btnDeleteInModal");
+  const mDate           = document.getElementById("mDate");
+  const mType           = document.getElementById("mType");
+  const mStart          = document.getElementById("mStart");
+  const mEnd            = document.getElementById("mEnd");
+  const mPause          = document.getElementById("mPause");
+
+  let editingId = null;
+  let interval = null;
+
+  function showTab(id){
+    document.querySelectorAll(".tab").forEach(t=>t.style.display="none");
+    document.getElementById(id).style.display = "block";
+    document.querySelectorAll(".tabBtn").forEach(b=>{
+      b.classList.toggle("active", b.dataset.tab === id);
+    });
+  }
+  document.querySelectorAll(".tabBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=> showTab(btn.dataset.tab));
+  });
+
+  const pad2 = n => String(n).padStart(2,"0");
+  function ymd(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+  function dmy(d){ return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`; }
+  function formatHM(min){
+    const sign = min < 0 ? "-" : "";
+    const a = Math.abs(min);
+    const h = Math.floor(a/60);
+    const m = a%60;
+    return `${sign}${h}:${pad2(m)}`;
+  }
+  function formatHMS(ms){
+    const totalSec = Math.floor(ms/1000);
+    const h = Math.floor(totalSec/3600);
+    const m = Math.floor((totalSec%3600)/60);
+    const s = totalSec%60;
+    return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+  }
+  function parseHM(str){
+  const s = String(str).trim();
+
+  // formaat u:min
+  const hm = s.match(/^(\d+)\s*:\s*([0-5]\d)$/);
+  if(hm){
+    return parseInt(hm[1],10)*60 + parseInt(hm[2],10);
+  }
+
+  // enkel minuten (bv 125)
+  if(/^\d+$/.test(s)){
+    return parseInt(s,10);
+  }
+
+  return null;
+  }
+  function timeToMin(t){
+    if(!t) return null;
+    const [hh,mm] = t.split(":").map(x=>parseInt(x,10));
+    if(Number.isNaN(hh)||Number.isNaN(mm)) return null;
+    return hh*60+mm;
+  }
+  function minToTime(min){
+    const h = Math.floor(min/60);
+    const m = min%60;
+    return `${pad2(h)}:${pad2(m)}`;
+  }
+  function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+  function uid(){ return Math.random().toString(36).slice(2,10) + "-" + Date.now().toString(36); }
+
+  function setSaldoColor(el, min){
+    el.classList.remove("salpos","salneg","salzero");
+    if(min > 0) el.classList.add("salpos");
+    else if(min < 0) el.classList.add("salneg");
+    else el.classList.add("salzero");
+  }
+
+  function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return defaultState();
+      const s = JSON.parse(raw);
+      if(!s.settings) s.settings = {startSaldoMin:0};
+      if(!s.timer) s.timer = {running:false,startMs:null,accMs:0};
+      if(!Array.isArray(s.entries)) s.entries = [];
+      return s;
+    }catch(e){ return defaultState(); }
+  }
+  function saveMeta(){ localStorage.setItem(META_KEY, JSON.stringify(meta)); }
+  function loadMeta(){
+    try{
+      const raw = localStorage.getItem(META_KEY);
+      if(!raw) return defaultMeta();
+      const m = JSON.parse(raw);
+      return m || defaultMeta();
+    }catch(e){ return defaultMeta(); }
+  }
+
+  function currentElapsedMs(){
+    if(state.timer.running && state.timer.startMs!=null){
+      return state.timer.accMs + (Date.now() - state.timer.startMs);
+    }
+    return state.timer.accMs || 0;
+  }
+  function updateTimerUI(){ elTimer.textContent = formatHMS(currentElapsedMs()); }
+  function setStatus(s){ elStatus.textContent = s; }
+
+  function startTimer(){
+    if(state.timer.running) return;
+    state.timer.running = true;
+    state.timer.startMs = Date.now();
+    if(!interval) interval = setInterval(()=>{ updateTimerUI(); saveState(); }, 250);
+    setStatus("Bezig...");
+    saveState();
+  }
+  function pauseTimer(){
+    if(!state.timer.running) return;
+    const now = Date.now();
+    state.timer.accMs += (now - state.timer.startMs);
+    state.timer.running = false;
+    state.timer.startMs = null;
+    setStatus("Gepauzeerd");
+    updateTimerUI();
+    saveState();
+  }
+  function resetTimer(){
+    state.timer.running = false;
+    state.timer.startMs = null;
+    state.timer.accMs = 0;
+    updateTimerUI();
+    setStatus("Nog niet gestart");
+    saveState();
+  }
+
+  function getTodayYMD(){ return ymd(new Date()); }
+  function weekStart(d = new Date()){
+    const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const day = (dd.getDay()+6)%7;
+    dd.setDate(dd.getDate()-day);
+    dd.setHours(0,0,0,0);
+    return dd;
+  }
+  function inSameWeek(dateYMD){
+    const ws = weekStart(new Date());
+    const we = new Date(ws); we.setDate(ws.getDate()+7);
+    const d = new Date(dateYMD+"T00:00:00");
+    return d>=ws && d<we;
+  }
+  function workNetForDate(dateYMD){
+    return state.entries
+      .filter(e=>!e.deletedAt && e.date===dateYMD && e.type==="Werk")
+      .reduce((a,e)=>a + (e.netMin||0), 0);
+  }
+  function recupCount(){
+    return state.entries.filter(e=>!e.deletedAt && e.type==="Recup").length;
+  }
+  function overtimeSaldoMin(){
+    const start = state.settings.startSaldoMin || 0;
+    const days = [...new Set(state.entries.filter(e=>!e.deletedAt).map(e=>e.date))].sort();
+    let sum = start;
+
+    for(const day of days){
+      const hasWork = state.entries.some(e=>!e.deletedAt && e.date===day && e.type==="Werk");
+      const workNet = workNetForDate(day);
+      if(hasWork) sum += (workNet - NORM_MIN);
+
+      const recups = state.entries.filter(e=>!e.deletedAt && e.date===day && e.type==="Recup").length;
+      if(recups>0) sum += (-RECUP_MIN * recups);
+    }
+    return sum;
+  }
+
+  function saveWorkEntry(){
+    const ms = currentElapsedMs();
+    if(ms < 1000){
+      showToast("Timer is te kort. Gebruik START of + Handmatig.");
+      return;
+    }
+    const pause = clamp(parseInt(elPauseMin.value||"0",10)||0, 0, 600);
+    const now = new Date();
+    const date = ymd(now);
+    const durMin = Math.max(0, Math.round(ms/60000));
+    const netMin = Math.max(0, durMin - pause);
+
+    const endMin = now.getHours()*60 + now.getMinutes();
+    const startDate = new Date(now.getTime() - ms);
+    const startMin = startDate.getHours()*60 + startDate.getMinutes();
+
+    state.entries.unshift({
+      id: uid(), date, type:"Werk",
+      start: minToTime(startMin), end: minToTime(endMin),
+      pauseMin: pause, netMin, createdAt: Date.now()
+    });
+
+    saveState();
+    resetTimer();
+    renderAll();
+    }
+  function addRecup(){
+  const date = getTodayYMD();
+  const msg = `RECUP toevoegen voor ${dmy(new Date())}?\nDit doet 7u30 op je overuren.`;
+
+  openConfirm(msg, () => {
+    state.entries.unshift({
+      id: uid(), date, type:"Recup",
+      start:null, end:null, pauseMin:0, netMin: RECUP_MIN, createdAt: Date.now()
+    });
+    saveState();
+    renderAll();
+    });
+}
+
+  function openModal(mode, entry=null){
+    editingId = entry ? entry.id : null;
+    modalTitle.textContent = mode==="edit" ? "Entry bewerken" : "Handmatig toevoegen";
+    btnDeleteInModal.style.display = mode==="edit" ? "inline-block" : "none";
+
+    mDate.value = entry?.date || getTodayYMD();
+    mType.value = entry?.type || "Werk";
+
+    if((entry?.type||"Werk")==="Recup"){
+      mStart.value=""; mEnd.value=""; mPause.value=0;
+    }else{
+      mStart.value = entry?.start || "08:00";
+      mEnd.value   = entry?.end   || "15:30";
+      mPause.value = entry?.pauseMin ?? 30;
+    }
+
+    modalBack.style.display = "flex";
+  }
+  function closeModal(){ modalBack.style.display = "none"; editingId = null; }
+  function netFromFields(type, start, end, pauseMin){
+    if(type==="Recup") return RECUP_MIN;
+    const s = timeToMin(start);
+    const e = timeToMin(end);
+    if(s==null || e==null) return null;
+    let dur = e - s;
+    if(dur < 0) dur += 24*60;
+    return Math.max(0, dur - pauseMin);
+  }
+  function saveModal(){
+    const date = mDate.value;
+    const type = mType.value;
+    const start = (mStart.value||"").trim();
+    const end = (mEnd.value||"").trim();
+    const pauseMin = clamp(parseInt(mPause.value||"0",10)||0, 0, 600);
+
+    if(!date){ showToast("Kies een datum."); return; }
+    const netMin = netFromFields(type, start, end, pauseMin);
+    if(netMin==null){ showToast("Vul start en einde in (of kies Recup)."); return; }
+
+    if(editingId){
+      const idx = state.entries.findIndex(e=>e.id===editingId);
+      if(idx === -1) return;
+      state.entries[idx] = {
+        ...state.entries[idx],
+        date, type,
+        start: type==="Recup" ? null : start,
+        end: type==="Recup" ? null : end,
+        pauseMin: type==="Recup" ? 0 : pauseMin,
+        netMin
+      };
+    }else{
+      state.entries.unshift({
+        id: uid(), date, type,
+        start: type==="Recup" ? null : start,
+        end: type==="Recup" ? null : end,
+        pauseMin: type==="Recup" ? 0 : pauseMin,
+        netMin, createdAt: Date.now()
+      });
+    }
+
+    saveState();
+    closeModal();
+    renderAll();
+  }
+  function deleteEditing(){
+    if(!editingId) return;
+    openConfirm("Deze entry verwijderen?", () => {
+    const idx = state.entries.findIndex(e=>e.id===editingId);
+    if(idx>=0) state.entries[idx].deletedAt = Date.now();
+    saveState();
+    closeModal();
+    renderAll();
+    });
+  }
+
+  mType.addEventListener("change", ()=>{
+    if(mType.value==="Recup"){
+      mStart.value=""; mEnd.value=""; mPause.value=0;
+    }else{
+      if(!mStart.value) mStart.value="08:00";
+      if(!mEnd.value) mEnd.value="15:30";
+      if(!mPause.value) mPause.value=30;
+    }
+  });
+
+  function entryTitle(e){
+    if(e.type==="Recup") return `${e.date} - RECUP`;
+    return `${e.date} - ${(e.start||"-")}-${(e.end||"-")}`;
+  }
+  function entrySubtitle(e){
+    if(e.type==="Recup") return `Recup - gaat van overuren af (7:30)`;
+    return `Werk - netto ${formatHM(e.netMin||0)} - pauze ${e.pauseMin||0} min`;
+  }
+  function entryChip(e){
+    if(e.type==="Recup") return "7:30";
+    return formatHM(e.netMin||0);
+  }
+  function renderHistory(){
+    const list = state.entries
+      .filter(e=>!e.deletedAt)
+      .slice()
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+    if(list.length===0){
+      elHistoryList.innerHTML = `<div class="muted" style="font-weight:950; margin-top:12px;">Nog geen entries.</div>`;
+      return;
+    }
+
+    elHistoryList.innerHTML = "";
+    list.forEach(e=>{
+      const div = document.createElement("div");
+      div.className = "entry";
+      div.innerHTML = `
+        <div class="left">
+          <div class="t1">${entryTitle(e)}</div>
+          <div class="t2">${entrySubtitle(e)}</div>
+        </div>
+        <div class="right">
+          <div class="chip">${entryChip(e)}</div>
+        <button class="btnSmall" data-act="edit" aria-label="Bewerken">✎</button>
+          <button class="btnSmall btnDanger" data-act="del">X</button>
+        </div>
+      `;
+      div.querySelector('[data-act="edit"]').addEventListener("click", ()=> openModal("edit", e));
+      div.querySelector('[data-act="del"]').addEventListener("click", ()=>{
+        openConfirm("Deze entry verwijderen?", () => {
+          const idx = state.entries.findIndex(x=>x.id===e.id);
+          if(idx>=0) state.entries[idx].deletedAt = Date.now();
+          saveState();
+          renderAll();
+        });
+      });
+      elHistoryList.appendChild(div);
+    });
+  }
+
+  function setLastBackup(at, name){
+    meta.lastBackupAt = at;
+    meta.lastBackupName = name;
+    saveMeta();
+  }
+  function renderBackupMeta(){
+    if(meta.lastBackupAt){
+      const d = new Date(meta.lastBackupAt);
+      const txt = `${dmy(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())} (${meta.lastBackupName||"backup"})`;
+      elLastBackupText.textContent = `Laatste backup: ${txt}`;
+    }else{
+      elLastBackupText.textContent = `Laatste backup: nooit`;
+    }
+  }
+
+  function exportJSON(withDownloadName=null){
+    const data = JSON.stringify({state, meta}, null, 2);
+    const blob = new Blob([data], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+
+    const name = withDownloadName || `shift-Buddy-backup-${getTodayYMD()}.json`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    setLastBackup(Date.now(), name);
+    renderBackupMeta();
+  }
+
+  function importJSON(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const parsed = JSON.parse(reader.result);
+
+      if(parsed && parsed.state && parsed.meta){
+        state = parsed.state;
+        meta  = parsed.meta;
+      }else if(parsed && parsed.settings && parsed.entries){
+        state = parsed;
+        meta  = defaultMeta();
+      }else{
+        showToast("Ongeldig JSON bestand.");
+        return;
+      }
+
+      if(!state.settings) state.settings = { startSaldoMin: 0 };
+      if(!state.timer)    state.timer    = { running:false, startMs:null, accMs:0 };
+      if(!Array.isArray(state.entries)) state.entries = [];
+      if(!meta) meta = defaultMeta();
+
+      saveState(); saveMeta();
+      renderAll();
+      showToast("Import gelukt");
+    }catch(e){
+      showToast("Ongeldig JSON bestand.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+  function renderSettings(){
+    elStartSaldoInput.value = formatHM(state.settings.startSaldoMin || 0);
+  }
+  function saveSettings(){
+    const mins = parseHM(elStartSaldoInput.value);
+    if(mins==null){
+      showToast("Start saldo moet in formaat u:min zijn, bv 60:00");
+      return;
+    }
+    state.settings.startSaldoMin = mins;
+    saveState();
+    renderAll();
+    showToast("Instellingen opgeslagen ");
+  }
+
+  function renderOnlineBadge(){
+    const online = navigator.onLine;
+    elOnlineBadge.textContent = online ? "Status: online" : "Status: offline";
+    elOnlineBadge.classList.toggle("ok", online);
+    elOnlineBadge.classList.toggle("warn", !online);
+  }
+
+  function renderTotals(){
+    const today = getTodayYMD();
+    const todayNet = workNetForDate(today);
+    const weekNet = state.entries
+      .filter(e=>!e.deletedAt && e.type==="Werk" && inSameWeek(e.date))
+      .reduce((a,e)=>a+(e.netMin||0),0);
+
+    const ot = overtimeSaldoMin();
+    const rc = recupCount();
+
+    elTodayWork.textContent = formatHM(todayNet);
+    elWeekWork.textContent = formatHM(weekNet);
+
+    elOvertimeSaldo.textContent = formatHM(ot);
+    setSaldoColor(elOvertimeSaldo, ot);
+
+    elSaldoBig.textContent = formatHM(ot);
+    elRecupDays.textContent = String(rc);
+
+    const last = state.entries
+      .filter(e=>!e.deletedAt)
+      .slice()
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+
+    if(!last){
+      elLastEntry.textContent = "-";
+    }else if(last.type==="Recup"){
+      elLastEntry.textContent = `${last.date} - RECUP - Effect: 7:30 op overuren`;
+    }else{
+      elLastEntry.textContent = `${last.date} - ${last.start}-${last.end} - netto ${formatHM(last.netMin||0)} (pauze ${last.pauseMin||0}m)`;
+    }
+  }
+
+  function renderAll(){
+    elTodayPill.textContent = dmy(new Date());
+
+    if(state.timer.running) setStatus("Bezig...");
+    else if(state.timer.accMs>0) setStatus("Gepauzeerd");
+    else setStatus("Nog niet gestart");
+
+    updateTimerUI();
+    renderTotals();
+    renderHistory();
+    renderBackupMeta();
+    renderSettings();
+    renderOnlineBadge();
+  }
+
+  btnStart.addEventListener("click", startTimer);
+  btnPause.addEventListener("click", pauseTimer);
+  btnSave.addEventListener("click", saveWorkEntry);
+  btnRecup.addEventListener("click", addRecup);
+
+  btnAddManual.addEventListener("click", ()=> openModal("add"));
+
+if (btnExport) {
+  btnExport.addEventListener("click", ()=> exportJSON());
+}
+
+if (fileImport) {
+  fileImport.addEventListener("change", (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(f) importJSON(f);
+    e.target.value = "";
+  });
+}
+
+  //  import vanuit Backup-tab
+  fileImport2.addEventListener("change", (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(f) importJSON(f);
+    e.target.value = "";
+  });
+
+  btnBackupNow.addEventListener("click", ()=> exportJSON());
+  btnSaveSettings.addEventListener("click", saveSettings);
+
+  btnCloseModal.addEventListener("click", closeModal);
+  modalBack.addEventListener("click", (e)=>{ if(e.target===modalBack) closeModal(); });
+  btnSaveModal.addEventListener("click", saveModal);
+  btnDeleteInModal.addEventListener("click", deleteEditing);
+
+  window.addEventListener("online", renderOnlineBadge);
+  window.addEventListener("offline", renderOnlineBadge);
+
+  function init(){
+    showTab("tab1");
+
+    if(state.timer.running){
+      if(!interval) interval = setInterval(()=>{ updateTimerUI(); saveState(); }, 250);
+      setStatus("Bezig...");
+    }else{
+      setStatus(state.timer.accMs>0 ? "Gepauzeerd" : "Nog niet gestart");
+    }
+
+    renderAll();
+    
+  }
+  init();
+})();
+function showToast(message, type="warn"){
+  const el = document.getElementById("toast");
+  if(!el) return;
+
+  el.textContent = message;
+  el.className = "toast " + type;
+  el.classList.add("show");
+
+  setTimeout(()=>{
+    el.classList.remove("show");
+  }, 2200);
+}
+function openConfirm(message, onOk){
+  const overlay = document.getElementById("appModalOverlay");
+  const body    = document.getElementById("appModalBody");
+  const btnOk   = document.getElementById("appModalOk");
+  const btnCan  = document.getElementById("appModalCancel");
+
+  // fallback als iets ontbreekt
+  if(!overlay || !btnOk || !btnCan){
+    if(confirm(message)){
+      if(typeof onOk === "function") onOk();
+    }
+    return;
+  }
+
+  if(body) body.textContent = message;
+
+  // tonen
+  overlay.classList.add("show");
+
+  const cleanup = () => {
+    overlay.classList.remove("show");
+    btnOk.onclick = null;
+    btnCan.onclick = null;
+    overlay.onclick = null;
+    document.removeEventListener("keydown", escHandler);
+  };
+
+  const escHandler = (e) => {
+    if(e.key === "Escape") cleanup();
+  };
+
+  btnOk.onclick = () => {
+    cleanup();
+    if(typeof onOk === "function") onOk();
+  };
+
+  btnCan.onclick = () => cleanup();
+
+  overlay.onclick = (e) => {
+    if(e.target === overlay) cleanup();
+  };
+
+  document.addEventListener("keydown", escHandler);
+}
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/shift-buddy/service-worker.js', {
+      scope: '/shift-buddy/'
+    });
+  });
+}
+</script>
+<!-- ... je hele app ... -->
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Confirm Modal -->
+  <div id="appModalOverlay" class="appModalOverlay">
+    <div class="appModal" role="dialog" aria-modal="true" aria-labelledby="appModalTitle">
+      <div class="appModalHeader" id="appModalTitle">Bevestigen</div>
+      <div class="appModalBody" id="appModalBody">Ben je zeker?</div>
+      <div class="appModalActions">
+        <button id="appModalCancel" class="btnGhost" type="button">Annuleren</button>
+        <button id="appModalOk" class="btnDanger" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
