@@ -959,7 +959,6 @@ document.getElementById("btnSaveSettings2")?.addEventListener("click", saveSetti
   return d.toLocaleDateString("nl-BE");
 }
 function entrySubtitle(e){
-
   if(e.type==="Recup"){
     return `RECUP<br>
 gaat van overuren af (${formatHM(e.netMin||0)})`;
@@ -968,6 +967,10 @@ gaat van overuren af (${formatHM(e.netMin||0)})`;
   return `WERK ${e.start || "-"}-${e.end || "-"}<br>
 netto ${formatHM(e.netMin||0)}<br>
 pauze ${e.pauseMin||0} min`;
+}
+
+function entryChip(e){
+  return formatHM(e.netMin || 0);
 }
 
   function renderHistory(){
@@ -1138,7 +1141,7 @@ if (elSaldoBig) {
     if(!last){
       elLastEntry.textContent = "-";
     }else if(last.type==="Recup"){
-      elLastEntry.textContent = `${last.date} - RECUP - Effect: 7:30 op overuren`;
+      elLastEntry.textContent = `${last.date} - RECUP - gaat van overuren af`;
     }else{
       elLastEntry.textContent = `${last.date} - ${last.start}-${last.end} - netto ${formatHM(last.netMin||0)} (pauze ${last.pauseMin||0}m)`;
     }
