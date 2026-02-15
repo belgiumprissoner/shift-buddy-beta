@@ -1114,7 +1114,8 @@ if(e.type==="Recup") return `RECUP - gaat van overuren af (${formatHM(e.netMin||
     setSaldoColor(elOvertimeSaldo, ot);
 
     elSaldoBig.textContent = formatHM(ot);
-    elRecupDays.textContent = String(rc);
+    setSaldoColor(elSaldoBig, ot);
+    
 
     const last = state.entries
       .filter(e=>!e.deletedAt)
