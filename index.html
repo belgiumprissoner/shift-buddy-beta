@@ -964,9 +964,10 @@ function entrySubtitle(e){
 gaat van overuren af (${formatHM(e.netMin||0)})`;
   }
 
-  return `WERK ${e.start || "-"}-${e.end || "-"}<br>
-netto ${formatHM(e.netMin||0)}<br>
-pauze ${e.pauseMin||0} min`;
+  return `WERK<br>
+${e.start || "-"}-${e.end || "-"}<br>
+Netto ${formatHM(e.netMin||0)}<br>
+Pauze ${e.pauseMin||0} Min`;
 }
 
 function entryChip(e){
