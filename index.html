@@ -798,15 +798,16 @@ const META_KEY  = "shiftBuddy_beta_meta_v1";
   function overtimeSaldoMin(){
     const start = state.settings.startSaldoMin || 0;
     const days = [...new Set(state.entries.filter(e=>!e.deletedAt).map(e=>e.date))].sort();
-    let sum = start;
+   const NORM_DAY = state.settings.normDayMin ?? NORM_MIN;
+ let sum = start;
 
     for(const day of days){
       const hasWork = state.entries.some(e=>!e.deletedAt && e.date===day && e.type==="Werk");
       const workNet = workNetForDate(day);
-      if(hasWork) sum += (workNet - NORM_MIN);
+      if(hasWork) sum += (workNet - NORM_DAY);
 
       const recups = state.entries.filter(e=>!e.deletedAt && e.date===day && e.type==="Recup").length;
-      if(recups>0) sum += (-RECUP_MIN * recups);
+      if(recups>0) sum += (-NORM_DAY* recups);
     }
     return sum;
   }
