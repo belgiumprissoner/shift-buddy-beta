@@ -1075,12 +1075,16 @@ if(e.type==="Recup") return `RECUP - gaat van overuren af (${formatHM(e.netMin||
 
     elTodayWork.textContent = formatHM(todayNet);
     elWeekWork.textContent = formatHM(weekNet);
+if (elOvertimeSaldo) {
+  elOvertimeSaldo.textContent = formatHM(ot);
+  setSaldoColor(elOvertimeSaldo, ot);
+}
 
-    elOvertimeSaldo.textContent = formatHM(ot);
-    setSaldoColor(elOvertimeSaldo, ot);
-
-    elSaldoBig.textContent = formatHM(ot);
-    setSaldoColor(elSaldoBig, ot);
+if (elSaldoBig) {
+  elSaldoBig.textContent = formatHM(ot);
+  setSaldoColor(elSaldoBig, ot);
+}
+    
     
 
     const last = state.entries
