@@ -369,7 +369,6 @@
     <div class="tabs">
       <div class="tabBtn active" data-tab="tab1">Dag-Shift</div>
       <div class="tabBtn" data-tab="tab2">Historiek</div>
-      <div class="tabBtn" data-tab="tab3">Saldo</div>
       <div class="tabBtn" data-tab="tab4">Backup & Login</div>
     </div>
 
@@ -427,33 +426,6 @@
 </div>
         <div class="muted">Alles staat lokaal op je toestel. Export JSON = jouw -nooit kwijt- backup.</div>
         <div class="list" id="historyList"></div>
-      </div>
-    </div>
-
-    <div id="tab3" class="tab" style="display:none;">
-      <div class="card">
-        <div class="h2Row">
-          <h2>Saldo</h2>
-          <span class="badge"><span id="normBadge">Norm: 7:30</span></span>
-        </div>
-
-        <div class="grid3" style="grid-template-columns:1fr;">
-          <div class="miniCard">
-            <div class="k">Overuren saldo</div>
-            <div class="v" id="saldoBig">0:00</div>
-          </div>
-          <div class="miniCard">
-            <div class="k">Recup dagen</div>
-            <div class="v" id="recupDays">0</div>
-          </div>
-        </div>
-
-        <div class="muted2" style="margin-top:12px; font-weight:900;">
-          Logica:
-          <br>- Per kalenderdag telt werk(net) mee.
-          <br>- Boven 7:30 = plus overuren, eronder = tekort gaat van overuren af.
-          <br>- RECUP = 7:30 op overuren.
-        </div>
       </div>
     </div>
 
