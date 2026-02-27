@@ -1155,11 +1155,15 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   /* =========================
      ShiftTap (try Gmail)
      ========================= */
-  const STORE_KEY = `${APP_ID}_state_${APP_CHANNEL}`;
-  const META_KEY  = `${APP_ID}_meta_${APP_CHANNEL}`;
+  const APP_ID = "shifttap";
+const APP_CHANNEL = "stable_try_gmailv1";
+const APP_VERSION = "2.0.0";
 
-  const NORM_MIN  = 7 * 60 + 30;
-  const RECUP_MIN = 7 * 60 + 30;
+const STORE_KEY = `${APP_ID}_state_${APP_CHANNEL}`;
+const META_KEY  = `${APP_ID}_meta_${APP_CHANNEL}`;
+
+const NORM_MIN  = 7 * 60 + 30;
+const RECUP_MIN = 7 * 60 + 30;
 
 // =========================
 // Cloud sync (Google login) via Firebase
@@ -1169,9 +1173,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 // - Create Firestore database
 // - Paste firebaseConfig below
 // =========================
-const APP_ID = "shifttap";
-const APP_CHANNEL = "stable_try_gmailv1"; // separate storage bucket (live/beta)
-const APP_VERSION = "2.0.0";
+
 
 // Firebase config is not a secret, but Firestore rules must be locked.
 const FIREBASE_CONFIG = null; // <-- paste object here
