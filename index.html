@@ -2960,24 +2960,24 @@ dayEdit?.addEventListener("click", () => {
   window.addEventListener("online", renderOnlineBadge);
   window.addEventListener("offline", renderOnlineBadge);
 
-  function init(){
-  handleRedirectLoginResult();
-  wireCloudAuthUI().catch(console.error); 
+  async function init(){
+  await handleRedirectLoginResult();        // ✅ eerst redirect verwerken
+  await wireCloudAuthUI().catch(console.error);  
   bindCloudButtons();
-  
-    showTab("tab1");
 
-    if(state.timer.running){
-      if(!interval) interval = setInterval(()=>{ updateTimerUI(); saveState(); }, 250);
-      setStatus("playing");
-    }else{
-      setStatus(state.timer.accMs>0 ? "paused" : "stopped");
-    }
+  showTab("tab1");
 
-    renderAll();
+  if(state.timer.running){
+    if(!interval) interval = setInterval(()=>{ updateTimerUI(); saveState(); }, 250);
+    setStatus("playing");
+  }else{
+    setStatus(state.timer.accMs>0 ? "paused" : "stopped");
   }
 
-  init();
+  renderAll();
+}
+
+init();
 })();  
 
 </script>
