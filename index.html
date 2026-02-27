@@ -1199,6 +1199,9 @@ function ensureFirebase(){
   if(fbApp) return true;
   fbApp = firebase.initializeApp(FIREBASE_CONFIG);
   fbAuth = firebase.auth();
+  // Keep Google login session after redirect (important on mobile/PWA)
+  fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .catch(e => console.warn('Auth persistence failed:', e));
   fbDb = firebase.firestore();
   return true;
 }
