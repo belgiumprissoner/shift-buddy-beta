@@ -1176,7 +1176,14 @@ const RECUP_MIN = 7 * 60 + 30;
 
 
 // Firebase config is not a secret, but Firestore rules must be locked.
-const FIREBASE_CONFIG = null; // <-- paste object here
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCkK45tqlORcpyIkVVsD5sJA6CRx4guad0",
+  authDomain: "shifttap-cloud.firebaseapp.com",
+  projectId: "shifttap-cloud",
+  storageBucket: "shifttap-cloud.firebasestorage.app",
+  messagingSenderId: "818538130643",
+  appId: "1:818538130643:web:2614157b0d6a767deb3826"
+};
 
 let fbApp = null;
 let fbAuth = null;
@@ -1185,6 +1192,7 @@ let fbDb = null;
 function firebaseConfigured(){
   return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
 }
+
 
 function ensureFirebase(){
   if(!firebaseConfigured()) return false;
@@ -1195,6 +1203,180 @@ function ensureFirebase(){
   return true;
 }
   
+// Firebase config is not a secret, but Firestore rules must be locked.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCkK45tqlORcpyIkVVsD5sJA6CRx4guad0",
+  authDomain: "shifttap-cloud.firebaseapp.com",
+  projectId: "shifttap-cloud",
+  storageBucket: "shifttap-cloud.firebasestorage.app",
+  messagingSenderId: "818538130643",
+  appId: "1:818538130643:web:2614157b0d6a767deb3826"
+};
+
+let fbApp = null;
+let fbAuth = null;
+let fbDb = null;
+
+function firebaseConfigured(){
+  return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
+}
+/* =========================
+   Cloud sync (Google login)
+   - Mobile friendly: redirect login
+   ========================= */
+const elLoginNote     = document.getElementById("loginNote");
+const btnGoogleLogin  = document.getElementById("btnGoogleLogin");
+const btnGoogleLogout = document.getElementById("btnGoogleLogout");
+const btnCloudPull    = document.getElementById("btnCloudPull");
+const btnCloudPush    = document.getElementById("btnCloudPush");
+
+function setCloudUiEnabled(enabled){
+  if(btnGoogleLogin)  btnGoogleLogin.disabled  = !enabled;
+  if(btnGoogleLogout) btnGoogleLogout.disabled = !enabled;
+  if(btnCloudPull)    btnCloudPull.disabled    = !enabled;
+  if(btnCloudPush)    btnCloudPush.disabled    = !enabled;
+}
+
+function setLoginUi(user){
+  const loggedIn = !!user;
+  if(btnGoogleLogin)  btnGoogleLogin.style.display  = loggedIn ? "none" : "inline-flex";
+  if(btnGoogleLogout) btnGoogleLogout.style.display = loggedIn ? "inline-flex" : "none";
+  if(elLoginNote){
+    elLoginNote.textContent = loggedIn
+      ? `✅ Ingelogd: ${user.email || user.displayName || "Google"}`
+      : `Niet ingelogd.`;
+  }
+}
+
+function cloudDocRef(){
+  // 1 doc per user per app/channel
+  const user = fbAuth?.currentUser;
+  if(!user) return null;
+  const docId = `${APP_ID}_${APP_CHANNEL}`;
+  return fbDb.collection("users").doc(user.uid).collection("apps").doc(docId);
+}
+
+async function cloudPush(){
+  if(!ensureFirebase()){
+    showToast("Cloud niet geconfigureerd.", "warn");
+    return;
+  }
+  const user = fbAuth.currentUser;
+  if(!user){
+    showToast("Log eerst in met Google.", "warn");
+    return;
+  }
+
+  try{
+    showToast("⬆️ Upload bezig...", "ok");
+    const ref = cloudDocRef();
+    await ref.set({
+      appId: APP_ID,
+      channel: APP_CHANNEL,
+      version: APP_VERSION,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      state: state,
+      meta: meta
+    }, { merge: true });
+
+    showToast("✅ Backup naar cloud gelukt", "ok");
+  }catch(err){
+    console.error(err);
+    showToast("❌ Cloud upload mislukt", "warn");
+  }
+}
+
+async function cloudPull(){
+  if(!ensureFirebase()){
+    showToast("Cloud niet geconfigureerd.", "warn");
+    return;
+  }
+  const user = fbAuth.currentUser;
+  if(!user){
+    showToast("Log eerst in met Google.", "warn");
+    return;
+  }
+
+  try{
+    showToast("⬇️ Download bezig...", "ok");
+    const ref = cloudDocRef();
+    const snap = await ref.get();
+    if(!snap.exists){
+      showToast("Geen cloud-backup gevonden.", "warn");
+      return;
+    }
+    const data = snap.data();
+
+    if(data?.state){
+      state = data.state;
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    }
+    if(data?.meta){
+      meta = data.meta;
+      localStorage.setItem(META_KEY, JSON.stringify(meta));
+    }
+
+    // herteken UI
+    renderAll?.();
+    showToast("✅ Cloud → toestel gelukt", "ok");
+  }catch(err){
+    console.error(err);
+    showToast("❌ Cloud download mislukt", "warn");
+  }
+}
+
+async function cloudInit(){
+  // UI alvast veilig zetten
+  setCloudUiEnabled(false);
+
+  if(!ensureFirebase()){
+    if(elLoginNote) elLoginNote.textContent = "Nog niet mogelijk (Firebase niet geconfigureerd).";
+    return;
+  }
+
+  // Redirect result afhandelen (mobiel)
+  try{
+    await fbAuth.getRedirectResult();
+  }catch(err){
+    // soms popup/redirect issues -> toon alleen als het echt relevant is
+    console.warn("redirectResult:", err);
+  }
+
+  fbAuth.onAuthStateChanged((user)=>{
+    setLoginUi(user);
+    setCloudUiEnabled(true);
+  });
+
+  // buttons
+  btnGoogleLogin?.addEventListener("click", async ()=>{
+    try{
+      const provider = new firebase.auth.GoogleAuthProvider();
+      // mobielvriendelijk
+      await fbAuth.signInWithRedirect(provider);
+    }catch(err){
+      console.error(err);
+      showToast("❌ Inloggen mislukt", "warn");
+    }
+  });
+
+  btnGoogleLogout?.addEventListener("click", async ()=>{
+    try{
+      await fbAuth.signOut();
+      showToast("Uitgelogd.", "ok");
+    }catch(err){
+      console.error(err);
+      showToast("❌ Uitloggen mislukt", "warn");
+    }
+  });
+
+  btnCloudPush?.addEventListener("click", cloudPush);
+  btnCloudPull?.addEventListener("click", cloudPull);
+}
+
+// Start cloud init na page load
+setTimeout(cloudInit, 0);
+
+
   let calYear  = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
