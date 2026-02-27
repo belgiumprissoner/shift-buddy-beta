@@ -1202,24 +1202,7 @@ function ensureFirebase(){
   fbDb = firebase.firestore();
   return true;
 }
-  
-// Firebase config is not a secret, but Firestore rules must be locked.
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCkK45tqlORcpyIkVVsD5sJA6CRx4guad0",
-  authDomain: "shifttap-cloud.firebaseapp.com",
-  projectId: "shifttap-cloud",
-  storageBucket: "shifttap-cloud.firebasestorage.app",
-  messagingSenderId: "818538130643",
-  appId: "1:818538130643:web:2614157b0d6a767deb3826"
-};
 
-let fbApp = null;
-let fbAuth = null;
-let fbDb = null;
-
-function firebaseConfigured(){
-  return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
-}
 /* =========================
    Cloud sync (Google login)
    - Mobile friendly: redirect login
@@ -1708,18 +1691,7 @@ verrekenInput?.addEventListener("input", (e) => {
   e.target.value = v;
 });
 
-  /* =========================
-     Firebase config (later)
-     ========================= */
-  const firebaseConfig = {
-    apiKey: "AIzaSyCi-qkswsNawKr_-A3FIuxlWqNAUpjYCcs",
-    authDomain: "shiftbuddyproject-ef1dd.firebaseapp.com",
-    projectId: "shiftbuddyproject-ef1dd",
-    storageBucket: "shiftbuddyproject-ef1dd.firebasestorage.app",
-    messagingSenderId: "267425682905",
-    appId: "1:267425682905:web:2e521b1df5ce92245235c8"
-  };
-
+  
   /* =========================
      Toast + Confirm
      ========================= */
