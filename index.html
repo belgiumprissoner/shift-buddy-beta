@@ -2698,15 +2698,32 @@ async function logoutGoogle(){
   }
 }
 
+/* =========================
+   Google login + Cloud sync (Firebase)
+   ========================= */
+
+/* ---------- WAIT FOR USER (FIX REDIRECT TIMING) ---------- */
+async function waitForUser(){
+  if(!(await ensureFirebase())) return null;
+
+  // als user al bestaat: meteen terug
+  if(fbAuth?.currentUser) return fbAuth.currentUser;
+
+  // anders wachten op onAuthStateChanged (1x)
+  return new Promise((resolve)=>{
+    const unsub = fbAuth.onAuthStateChanged((u)=>{
+      unsub();
+      resolve(u || null);
+    });
+  });
+}
+
 /* ---------- CLOUD PUSH ---------- */
-
 async function cloudPush(){
-  if(!(await ensureFirebase())) return;
-
-  const u = currentUser();
-  if(!u){ 
-    alert("Eerst inloggen met Google."); 
-    return; 
+  const u = await waitForUser();
+  if(!u){
+    alert("Eerst inloggen met Google.");
+    return;
   }
 
   try{
@@ -2719,7 +2736,6 @@ async function cloudPush(){
 
     setCloudStatus(`✅ Cloud bijgewerkt (${u.email || "Google"})`);
     showToast("Cloud sync ✓", "ok");
-
   }catch(err){
     console.error(err);
     showToast("❌ Cloud upload mislukt", "warn");
@@ -2727,19 +2743,15 @@ async function cloudPush(){
 }
 
 /* ---------- CLOUD PULL ---------- */
-
 async function cloudPull(){
-  if(!(await ensureFirebase())) return;
-
-  const u = currentUser();
-  if(!u){ 
-    alert("Eerst inloggen met Google."); 
-    return; 
+  const u = await waitForUser();
+  if(!u){
+    alert("Eerst inloggen met Google.");
+    return;
   }
 
   try{
     const snap = await cloudDocRef(u.uid).get();
-
     if(!snap.exists){
       alert("Nog geen cloud-backup gevonden.");
       return;
@@ -2754,9 +2766,8 @@ async function cloudPull(){
     }
 
     openConfirm("Cloud → toestel: dit overschrijft je data op dit toestel. Doen?", ()=>{
-
-      if(payload.state) state = payload.state;
-      if(payload.meta)  meta  = payload.meta;
+      state = payload.state;
+      meta  = payload.meta || meta;
 
       if(!state.settings) state.settings = { startSaldoMin:0, normDayMin:NORM_MIN, lang:"nl" };
       if(!state.timer)    state.timer    = { running:false, startMs:null, accMs:0 };
@@ -2770,13 +2781,11 @@ async function cloudPull(){
       setCloudStatus(`⬇️ Cloud geladen (${u.email || "Google"})`);
       showToast("Cloud → toestel ✓", "ok");
     });
-
   }catch(err){
     console.error(err);
     showToast("❌ Cloud download mislukt", "warn");
   }
 }
-
 /* ---------- BUTTON BINDING ---------- */
 
 function bindCloudButtons(){
