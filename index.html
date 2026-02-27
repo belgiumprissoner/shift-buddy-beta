@@ -1318,14 +1318,18 @@ async function cloudInit(){
   }
 
   // Redirect result afhandelen (mobiel)
-  try{
-    await fbAuth.getRedirectResult();
-  }catch(err){
-    // soms popup/redirect issues -> toon alleen als het echt relevant is
-    console.warn("redirectResult:", err);
+try{
+  const result = await fbAuth.getRedirectResult();
+  if(result && result.user){
+    console.log("Redirect login:", result.user.email);
+    showToast("✅ Ingelogd als " + result.user.email, "ok");
   }
+}catch(err){
+  console.warn("redirectResult:", err);
+}
 
   fbAuth.onAuthStateChanged((user)=>{
+  console.log("Auth state:", user);
     setLoginUi(user);
     setCloudUiEnabled(true);
   });
