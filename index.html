@@ -2644,13 +2644,17 @@ ${t("pause_line")} ${e.pauseMin||0} ${t("minutes")}${noteLine}`;
 /* =========================
    Google login + Cloud sync (Firebase)
    ========================= */
+
 function setCloudStatus(txt){
   if(elCloudStatus) elCloudStatus.textContent = txt;
 }
 
 function currentUser(){
-  try { return (fbAuth && fbAuth.currentUser) ? fbAuth.currentUser : null; }
-  catch(e){ return null; }
+  try { 
+    return (fbAuth && fbAuth.currentUser) ? fbAuth.currentUser : null; 
+  } catch(e){ 
+    return null; 
+  }
 }
 
 function backupObject(){
@@ -2666,92 +2670,160 @@ function backupObject(){
   };
 }
 
+/* ---------- LOGIN ---------- */
+
 async function loginGoogle(){
-  if(!ensureFirebase()){
+  if(!(await ensureFirebase())){
     alert("Cloud is nog niet geconfigureerd (FIREBASE_CONFIG ontbreekt).");
     return;
   }
-  const provider = new firebase.auth.GoogleAuthProvider();
-  // Mobile/PWA: redirect works best
-  await fbAuth.signInWithRedirect(provider);
+
+  try{
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await fbAuth.signInWithRedirect(provider);
+  }catch(e){
+    console.error("loginGoogle:", e);
+    showToast("❌ Inloggen mislukt", "warn");
+  }
 }
+
+async function logoutGoogle(){
+  if(!(await ensureFirebase())) return;
+
+  try{
+    await fbAuth.signOut();
+    setCloudStatus("Niet ingelogd.");
+  }catch(e){
+    console.error("logoutGoogle:", e);
+  }
+}
+
+/* ---------- CLOUD PUSH ---------- */
 
 async function cloudPush(){
-if(!(await ensureFirebase())) return;
+  if(!(await ensureFirebase())) return;
+
   const u = currentUser();
-  if(!u){ alert("Eerst inloggen met Google."); return; }
+  if(!u){ 
+    alert("Eerst inloggen met Google."); 
+    return; 
+  }
 
-  const payload = backupObject();
-  await cloudDocRef(u.uid).set({
-    payload,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge:true });
+  try{
+    const payload = backupObject();
 
-  setCloudStatus(`✅ Cloud bijgewerkt (${u.email || "Google"})`);
-  showToast("Cloud sync ✓", "ok");
+    await cloudDocRef(u.uid).set({
+      payload,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
+
+    setCloudStatus(`✅ Cloud bijgewerkt (${u.email || "Google"})`);
+    showToast("Cloud sync ✓", "ok");
+
+  }catch(err){
+    console.error(err);
+    showToast("❌ Cloud upload mislukt", "warn");
+  }
 }
+
+/* ---------- CLOUD PULL ---------- */
 
 async function cloudPull(){
   if(!(await ensureFirebase())) return;
+
   const u = currentUser();
-  if(!u){ alert("Eerst inloggen met Google."); return; }
+  if(!u){ 
+    alert("Eerst inloggen met Google."); 
+    return; 
+  }
 
-  const snap = await cloudDocRef(u.uid).get();
-  if(!snap.exists){ alert("Nog geen cloud-backup gevonden."); return; }
+  try{
+    const snap = await cloudDocRef(u.uid).get();
 
-  const data = snap.data();
-  const payload = data && data.payload ? data.payload : null;
-  if(!payload || !payload.state){ alert("Cloud-backup is ongeldig."); return; }
+    if(!snap.exists){
+      alert("Nog geen cloud-backup gevonden.");
+      return;
+    }
 
-  openConfirm("Cloud → toestel: dit overschrijft je data op dit toestel. Doen?", ()=>{
-    // accept both {state,meta} and {state,meta,cloud}
-    if(payload.state) state = payload.state;
-    if(payload.meta)  meta  = payload.meta;
+    const data = snap.data();
+    const payload = data?.payload || null;
 
-    if(!state.settings) state.settings = { startSaldoMin:0, normDayMin:NORM_MIN, lang:"nl" };
-    if(!state.timer)    state.timer    = { running:false, startMs:null, accMs:0 };
-    if(!Array.isArray(state.entries)) state.entries = [];
-    if(!meta) meta = { lastBackupAt:null, lastBackupName:null };
+    if(!payload?.state){
+      alert("Cloud-backup is ongeldig.");
+      return;
+    }
 
-    saveState(); saveMeta();
-    renderAll();
-    setCloudStatus(`⬇️ Cloud geladen (${u.email || "Google"})`);
-    showToast("Cloud → toestel ✓", "ok");
-  });
+    openConfirm("Cloud → toestel: dit overschrijft je data op dit toestel. Doen?", ()=>{
+
+      if(payload.state) state = payload.state;
+      if(payload.meta)  meta  = payload.meta;
+
+      if(!state.settings) state.settings = { startSaldoMin:0, normDayMin:NORM_MIN, lang:"nl" };
+      if(!state.timer)    state.timer    = { running:false, startMs:null, accMs:0 };
+      if(!Array.isArray(state.entries)) state.entries = [];
+      if(!meta) meta = { lastBackupAt:null, lastBackupName:null };
+
+      saveState();
+      saveMeta();
+      renderAll();
+
+      setCloudStatus(`⬇️ Cloud geladen (${u.email || "Google"})`);
+      showToast("Cloud → toestel ✓", "ok");
+    });
+
+  }catch(err){
+    console.error(err);
+    showToast("❌ Cloud download mislukt", "warn");
+  }
 }
+
+/* ---------- BUTTON BINDING ---------- */
 
 function bindCloudButtons(){
-  if(btnGoogleLogin) btnGoogleLogin.addEventListener("click", ()=> loginGoogle().catch(console.error));
-  if(btnGoogleLogout) btnGoogleLogout.addEventListener("click", ()=> logoutGoogle().catch(console.error));
-  if(btnCloudPush) btnCloudPush.addEventListener("click", ()=> cloudPush().catch(e=>{ console.error(e); showToast("Cloud fout", "err"); }));
-  if(btnCloudPull) btnCloudPull.addEventListener("click", ()=> cloudPull().catch(e=>{ console.error(e); showToast("Cloud fout", "err"); }));
+  if(btnGoogleLogin)
+    btnGoogleLogin.addEventListener("click", ()=> loginGoogle().catch(console.error));
+
+  if(btnGoogleLogout)
+    btnGoogleLogout.addEventListener("click", ()=> logoutGoogle().catch(console.error));
+
+  if(btnCloudPush)
+    btnCloudPush.addEventListener("click", ()=> cloudPush().catch(console.error));
+
+  if(btnCloudPull)
+    btnCloudPull.addEventListener("click", ()=> cloudPull().catch(console.error));
 }
 
+/* ---------- AUTH UI ---------- */
+
 async function wireCloudAuthUI(){
+
   if(!firebaseConfigured()){
     setCloudStatus("Google login + Cloud sync: nog niet geconfigureerd.");
-    [btnGoogleLogin, btnGoogleLogout, btnCloudPull, btnCloudPush].forEach(b=>{ if(b) b.disabled = true; });
+    [btnGoogleLogin, btnGoogleLogout, btnCloudPull, btnCloudPush]
+      .forEach(b=>{ if(b) b.disabled = true; });
     return;
   }
 
-  await ensureFirebase();   // ✅ belangrijk
+  await ensureFirebase();
+
   fbAuth.onAuthStateChanged((u)=>{
     if(u){
       setCloudStatus(`✅ Ingelogd: ${u.email || "Google"}`);
-      if(btnGoogleLogin) btnGoogleLogin.disabled = true;
+
+      if(btnGoogleLogin)  btnGoogleLogin.disabled = true;
       if(btnGoogleLogout) btnGoogleLogout.disabled = false;
-      if(btnCloudPull) btnCloudPull.disabled = false;
-      if(btnCloudPush) btnCloudPush.disabled = false;
+      if(btnCloudPull)    btnCloudPull.disabled = false;
+      if(btnCloudPush)    btnCloudPush.disabled = false;
     }else{
       setCloudStatus("Niet ingelogd.");
-      if(btnGoogleLogin) btnGoogleLogin.disabled = false;
+
+      if(btnGoogleLogin)  btnGoogleLogin.disabled = false;
       if(btnGoogleLogout) btnGoogleLogout.disabled = true;
-      if(btnCloudPull) btnCloudPull.disabled = true;
-      if(btnCloudPush) btnCloudPush.disabled = true;
+      if(btnCloudPull)    btnCloudPull.disabled = true;
+      if(btnCloudPush)    btnCloudPush.disabled = true;
     }
   });
 }
-
 /* =========================
      Settings
      ========================= */
@@ -2842,45 +2914,44 @@ elOvertimeSaldo.innerHTML = `
   }
 
   /* =========================
-     Bind events
-     ========================= */
-  btnStart?.addEventListener("click", startTimer);
-  btnPause?.addEventListener("click", pauseTimer);
-  btnSave?.addEventListener("click", saveWorkEntry);
-  btnRecup?.addEventListener("click", addRecup);
+   Bind events
+   ========================= */
 
-  btnAddManual?.addEventListener("click", ()=> openModal("add"));
+// Basis knoppen
+btnStart?.addEventListener("click", startTimer);
+btnPause?.addEventListener("click", pauseTimer);
+btnSave?.addEventListener("click", saveWorkEntry);
+btnRecup?.addEventListener("click", addRecup);
+btnAddManual?.addEventListener("click", ()=> openModal("add"));
 
-  btnBackupNow?.addEventListener("click", ()=> exportJSON());
-  fileImport2?.addEventListener("change", (e)=>{
-    const f = e.target.files && e.target.files[0];
-    if(f) importJSON(f);
-    e.target.value = "";
-  });
-  
+// Backup
+btnBackupNow?.addEventListener("click", ()=> exportJSON());
+fileImport2?.addEventListener("change", (e)=>{
+  const f = e.target.files?.[0];
+  if(f) importJSON(f);
+  e.target.value = "";
+});
+
+// Verrekenen
 const verrekenAmount = document.getElementById("verrekenAmount");
 const verrekenDate   = document.getElementById("verrekenDate");
 const btnSaveVerreken = document.getElementById("btnSaveVerrekening");
 const btnCloseVerreken = document.getElementById("btnCloseVerreken");
 
-// Open (als je die al had mag blijven, maar zorg dat je NIET dubbel bindt)
 document.getElementById("btnVerreken")?.addEventListener("click", () => {
   if(verrekenDate) verrekenDate.value = todayISO();
   if(verrekenAmount && !verrekenAmount.value) verrekenAmount.value = "0:00";
   if(verrekenModal) verrekenModal.style.display = "flex";
 });
 
-// Sluiten (X)
 btnCloseVerreken?.addEventListener("click", () => {
   if(verrekenModal) verrekenModal.style.display = "none";
 });
 
-// Klik op achtergrond = sluiten
 verrekenModal?.addEventListener("click", (e) => {
   if(e.target === verrekenModal) verrekenModal.style.display = "none";
 });
 
-// ✅ OPSLAAN
 btnSaveVerreken?.addEventListener("click", () => {
   const date = (verrekenDate?.value || "").trim();
   const amountStr = (verrekenAmount?.value || "").trim();
@@ -2890,14 +2961,12 @@ btnSaveVerreken?.addEventListener("click", () => {
     return;
   }
 
-  // parseHM bestaat al bij jou en kan ook 50:00 aan ✅
   const mins = parseHM(amountStr);
   if(mins == null){
     showToast("Vul uren in als u:min (bv 10:00).", "warn");
     return;
   }
 
-  // bewaren
   state.verrekeningen = state.verrekeningen || [];
   state.verrekeningen.unshift({
     id: uid(),
@@ -2906,7 +2975,6 @@ btnSaveVerreken?.addEventListener("click", () => {
     createdAt: Date.now()
   });
 
-  // totaal bijhouden (later gebruiken we dit om saldo af te trekken)
   state.overtimePaidMinutes = (state.overtimePaidMinutes || 0) + mins;
 
   saveState();
@@ -2914,10 +2982,14 @@ btnSaveVerreken?.addEventListener("click", () => {
   showToast("Verrekenen ✓", "ok");
   renderAll();
 });
-  dayClose?.addEventListener("click", closeDayDetail);
+
+// Dag detail
+dayClose?.addEventListener("click", closeDayDetail);
+
 dayOverlay?.addEventListener("click", (ev)=>{
   if(ev.target === dayOverlay) closeDayDetail();
 });
+
 dayEdit?.addEventListener("click", () => {
   const ymdStr = dayTitle?.dataset?.ymd;
   if(!ymdStr) return;
@@ -2929,33 +3001,52 @@ dayEdit?.addEventListener("click", () => {
   openModal("edit", e);
 });
 
-  btnSaveSettings?.addEventListener("click", saveSettings);
-  btnCloseModal?.addEventListener("click", closeModal);
-  modalBack?.addEventListener("click", (e)=>{ if(e.target===modalBack) closeModal(); });
-  btnSaveModal?.addEventListener("click", saveModal);
-  btnDeleteInModal?.addEventListener("click", deleteEditing);
+// Settings
+btnSaveSettings?.addEventListener("click", saveSettings);
+btnCloseModal?.addEventListener("click", closeModal);
+modalBack?.addEventListener("click", (e)=>{ if(e.target===modalBack) closeModal(); });
+btnSaveModal?.addEventListener("click", saveModal);
+btnDeleteInModal?.addEventListener("click", deleteEditing);
 
-  if(langSelect){
-    langSelect.addEventListener("change", ()=>{
-      currentLang = langSelect.value;
-      state.settings.lang = currentLang;
-      saveState();
-      renderAll();
-    });
+if(langSelect){
+  langSelect.addEventListener("change", ()=>{
+    currentLang = langSelect.value;
+    state.settings.lang = currentLang;
+    saveState();
+    renderAll();
+  });
+}
+
+window.addEventListener("online", renderOnlineBadge);
+window.addEventListener("offline", renderOnlineBadge);
+
+
+/* =========================
+   INIT
+   ========================= */
+
+async function init(){
+  try{
+    await handleRedirectLoginResult?.();
+  }catch(e){
+    console.warn("redirect init error:", e);
   }
 
-  window.addEventListener("online", renderOnlineBadge);
-  window.addEventListener("offline", renderOnlineBadge);
+  try{
+    await wireCloudAuthUI();
+  }catch(e){
+    console.warn("auth UI error:", e);
+  }
 
-  async function init(){
-  await handleRedirectLoginResult();        // ✅ eerst redirect verwerken
-  await wireCloudAuthUI().catch(console.error);  
   bindCloudButtons();
 
   showTab("tab1");
 
   if(state.timer.running){
-    if(!interval) interval = setInterval(()=>{ updateTimerUI(); saveState(); }, 250);
+    if(!interval) interval = setInterval(()=>{ 
+      updateTimerUI(); 
+      saveState(); 
+    }, 250);
     setStatus("playing");
   }else{
     setStatus(state.timer.accMs>0 ? "paused" : "stopped");
@@ -2965,7 +3056,7 @@ dayEdit?.addEventListener("click", () => {
 }
 
 init();
-})();  
+})();
 
 </script>
 <!-- ===== TOEVOEGING CONFIRM MODAL START ===== -->
