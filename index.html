@@ -1196,10 +1196,12 @@ function firebaseConfigured(){
 
 async function ensureFirebase(){
   if(!firebaseConfigured()) return false;
-  if(fbApp) return true;
+  if(fbApp && fbAuth && fbDb) return true;
+
   fbApp = firebase.initializeApp(FIREBASE_CONFIG);
   fbAuth = firebase.auth();
   fbDb = firebase.firestore();
+
   await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   return true;
 }
@@ -2674,23 +2676,8 @@ async function loginGoogle(){
   await fbAuth.signInWithRedirect(provider);
 }
 
-async function handleRedirectLoginResult(){
-  if(!firebaseConfigured()) return;
-  ensureFirebase();
-  try{ await fbAuth.getRedirectResult(); }catch(e){}
-}
-
-async function logoutGoogle(){
-  if(!ensureFirebase()) return;
-  await fbAuth.signOut();
-}
-
-function cloudDocRef(uid){
-  return fbDb.collection("users").doc(uid).collection("channels").doc(APP_CHANNEL);
-}
-
 async function cloudPush(){
-  if(!ensureFirebase()) return;
+if(!(await ensureFirebase())) return;
   const u = currentUser();
   if(!u){ alert("Eerst inloggen met Google."); return; }
 
@@ -2705,7 +2692,7 @@ async function cloudPush(){
 }
 
 async function cloudPull(){
-  if(!ensureFirebase()) return;
+  if(!(await ensureFirebase())) return;
   const u = currentUser();
   if(!u){ alert("Eerst inloggen met Google."); return; }
 
