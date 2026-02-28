@@ -1152,26 +1152,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
 <script>
 
-// SAFE debug (blokkeert je app niet)
-let __errShown = 0;
-const __MAX_ERR = 5;
 
-window.addEventListener("error", (e) => {
-  console.error("JS ERROR:", e?.message, e);
-  if (__errShown < __MAX_ERR) {
-    __errShown++;
-    try { showToast?.("JS ERROR: " + (e?.message || "onbekend"), "warn"); } catch {}
-  }
-});
-
-window.addEventListener("unhandledrejection", (e) => {
-  console.error("PROMISE ERROR:", e?.reason, e);
-  const msg = (e?.reason && (e.reason.message || String(e.reason))) || "onbekend";
-  if (__errShown < __MAX_ERR) {
-    __errShown++;
-    try { showToast?.("PROMISE: " + msg, "warn"); } catch {}
-  }
-});
   /* =========================
      ShiftTap (try Gmail)
      ========================= */
