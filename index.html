@@ -2720,12 +2720,18 @@ async function loginGoogle(){
     return;
   }
   try{
+  const provider = new firebase.auth.GoogleAuthProvider();
+  await fbAuth.signInWithPopup(provider);
+}catch(e){
+  // Als popup geblokkeerd is, proberen we toch redirect (alleen dan)
+  if (e && (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user")) {
     const provider = new firebase.auth.GoogleAuthProvider();
     await fbAuth.signInWithRedirect(provider);
-  }catch(e){
-    console.error("loginGoogle:", e);
-    showToast("❌ Inloggen mislukt", "warn");
+    return;
   }
+  console.error("loginGoogle:", e);
+  showToast("❌ Inloggen mislukt", "warn");
+}
 }
 
 async function logoutGoogle(){
