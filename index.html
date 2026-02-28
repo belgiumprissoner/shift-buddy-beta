@@ -1151,8 +1151,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 </div>
 
 <script>
-
-
+(() => {
   /* =========================
      ShiftTap (try Gmail)
      ========================= */
@@ -2646,19 +2645,26 @@ ${t("pause_line")} ${e.pauseMin||0} ${t("minutes")}${noteLine}`;
    Google login + Cloud sync (Firebase)
    ========================= */
 
-// ---- DOM refs (MOET hier staan, anders crasht het) ----
-const elCloudStatus  = document.getElementById("cloudStatus");
-const btnGoogleLogin  = document.getElementById("btnGoogleLogin");
-const btnGoogleLogout = document.getElementById("btnGoogleLogout");
-const btnCloudPull    = document.getElementById("btnCloudPull");
-const btnCloudPush    = document.getElementById("btnCloudPush");
+/**
+ * Belangrijk:
+ * - Deze app draait als PWA (GitHub Pages / HTTPS).
+ * - Voor Google login moet je in Firebase Console bij Authentication → Settings
+ *   je domein toevoegen aan "Authorized domains" (bv. <user>.github.io).
+ * - Als dat niet klopt, zie je hieronder een duidelijke foutmelding.
+ */
+
+const elCloudStatus = document.getElementById("cloudStatus");
 
 function setCloudStatus(txt){
-  if(elCloudStatus) elCloudStatus.textContent = txt;
+  if(elCloudStatus) elCloudStatus.textContent = txt || "—";
 }
 
 function currentUser(){
-  return fbAuth?.currentUser || null;
+  try{
+    return fbAuth?.currentUser || null;
+  }catch(e){
+    return null;
+  }
 }
 
 function backupObject(){
@@ -2674,71 +2680,79 @@ function backupObject(){
   };
 }
 
-// ---- Firebase init (moet awaitbaar zijn) ----
-async function ensureFirebase(){
-  if(!firebaseConfigured()) return false;
-
-  // fbApp/fbAuth/fbDb moeten in jouw code al als "let" bestaan
-  if(!fbApp){
-    fbApp  = firebase.initializeApp(FIREBASE_CONFIG);
-    fbAuth = firebase.auth();
-    fbDb   = firebase.firestore();
-
-    // sessie bewaren op toestel
-    await fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  }
-  return true;
-}
-
-// ---- Na redirect terugkeer: result verwerken ----
-async function handleRedirectLoginResult(){
-  if(!(await ensureFirebase())) return;
-  try{
-    await fbAuth.getRedirectResult();
-  }catch(e){
-    console.warn("getRedirectResult:", e);
-  }
-}
-
-// ---- Firestore doc ref ----
 function cloudDocRef(uid){
-  return fbDb.collection("users").doc(uid).collection("channels").doc(APP_CHANNEL);
+  // 1 doc per user per app/channel
+  const docId = `${APP_ID}_${APP_CHANNEL}`;
+  return fbDb.collection("users").doc(uid).collection("apps").doc(docId);
 }
 
-// ---- Wacht tot user effectief beschikbaar is ----
-async function waitForUser(){
-  if(!(await ensureFirebase())) return null;
-  if(fbAuth.currentUser) return fbAuth.currentUser;
-
-  return new Promise((resolve)=>{
-    const unsub = fbAuth.onAuthStateChanged((u)=>{
-      unsub();
-      resolve(u || null);
-    });
-  });
-}
-
-/* ---------- LOGIN ---------- */
-async function loginGoogle(){
+/* ---------- Redirect result (mobiel/PWA) ---------- */
+async function handleRedirectLoginResult(){
   if(!(await ensureFirebase())){
-    alert("Cloud is nog niet geconfigureerd (FIREBASE_CONFIG ontbreekt).");
+    setCloudStatus("Cloud: niet geconfigureerd.");
+    setCloudUiEnabled(false);
+    if(elLoginNote) elLoginNote.textContent = "Nog niet mogelijk (Firebase niet geconfigureerd).";
     return;
   }
-  const provider = new firebase.auth.GoogleAuthProvider();
-  await fbAuth.signInWithRedirect(provider);
+
+  try{
+    const res = await fbAuth.getRedirectResult();
+    if(res && res.user){
+      // onAuthStateChanged zal sowieso ook vuren; dit is enkel extra feedback
+      showToast(`✅ Ingelogd als ${res.user.email || "Google"}`, "ok");
+    }
+  }catch(e){
+    console.error("getRedirectResult:", e);
+    // Toon duidelijke fout (bv. auth/unauthorized-domain)
+    const code = e?.code ? String(e.code) : "login-error";
+    const msg  = e?.message ? String(e.message) : "";
+    showToast(`❌ Google login fout (${code})`, "warn");
+    setCloudStatus(`❌ Login fout: ${code}`);
+    if(elLoginNote) elLoginNote.textContent = `Login fout: ${code}`;
+    if(msg) console.warn(msg);
+  }
+}
+
+/* ---------- Login / Logout ---------- */
+async function loginGoogle(){
+  if(!(await ensureFirebase())){
+    showToast("Cloud niet geconfigureerd.", "warn");
+    return;
+  }
+  try{
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await fbAuth.signInWithRedirect(provider);
+  }catch(e){
+    console.error("loginGoogle:", e);
+    showToast("❌ Inloggen mislukt", "warn");
+  }
 }
 
 async function logoutGoogle(){
   if(!(await ensureFirebase())) return;
-  await fbAuth.signOut();
+  try{
+    await fbAuth.signOut();
+    showToast("Uitgelogd.", "ok");
+  }catch(e){
+    console.error("logoutGoogle:", e);
+    showToast("❌ Uitloggen mislukt", "warn");
+  }
 }
 
-/* ---------- CLOUD PUSH ---------- */
+/* ---------- Cloud push / pull ---------- */
 async function cloudPush(){
-  const u = await waitForUser();
-  if(!u){ alert("Eerst inloggen met Google."); return; }
+  if(!(await ensureFirebase())){
+    showToast("Cloud niet geconfigureerd.", "warn");
+    return;
+  }
+  const u = currentUser();
+  if(!u){
+    showToast("Log eerst in met Google.", "warn");
+    return;
+  }
 
   try{
+    showToast("⬆️ Upload bezig...", "ok");
     const payload = backupObject();
     await cloudDocRef(u.uid).set({
       payload,
@@ -2746,39 +2760,56 @@ async function cloudPush(){
     }, { merge:true });
 
     setCloudStatus(`✅ Cloud bijgewerkt (${u.email || "Google"})`);
-    showToast("Cloud sync ✓", "ok");
+    showToast("✅ Backup naar cloud gelukt", "ok");
   }catch(err){
     console.error(err);
     showToast("❌ Cloud upload mislukt", "warn");
   }
 }
 
-/* ---------- CLOUD PULL ---------- */
 async function cloudPull(){
-  const u = await waitForUser();
-  if(!u){ alert("Eerst inloggen met Google."); return; }
+  if(!(await ensureFirebase())){
+    showToast("Cloud niet geconfigureerd.", "warn");
+    return;
+  }
+  const u = currentUser();
+  if(!u){
+    showToast("Log eerst in met Google.", "warn");
+    return;
+  }
 
   try{
+    showToast("⬇️ Download bezig...", "ok");
     const snap = await cloudDocRef(u.uid).get();
-    if(!snap.exists){ alert("Nog geen cloud-backup gevonden."); return; }
+    if(!snap.exists){
+      showToast("Geen cloud-backup gevonden.", "warn");
+      return;
+    }
 
     const payload = snap.data()?.payload || null;
-    if(!payload?.state){ alert("Cloud-backup is ongeldig."); return; }
+    if(!payload?.state){
+      showToast("Cloud-backup is ongeldig.", "warn");
+      return;
+    }
 
     openConfirm("Cloud → toestel: dit overschrijft je data op dit toestel. Doen?", ()=>{
       state = payload.state;
       meta  = payload.meta || meta;
 
+      // safety defaults
       if(!state.settings) state.settings = { startSaldoMin:0, normDayMin:NORM_MIN, lang:"nl" };
       if(!state.timer)    state.timer    = { running:false, startMs:null, accMs:0 };
       if(!Array.isArray(state.entries)) state.entries = [];
+      if(!Array.isArray(state.verrekeningen)) state.verrekeningen = [];
+      if(typeof state.overtimePaidMinutes !== "number") state.overtimePaidMinutes = 0;
       if(!meta) meta = { lastBackupAt:null, lastBackupName:null };
 
-      saveState(); saveMeta();
+      saveState();
+      saveMeta();
       renderAll();
 
       setCloudStatus(`⬇️ Cloud geladen (${u.email || "Google"})`);
-      showToast("Cloud → toestel ✓", "ok");
+      showToast("✅ Cloud → toestel gelukt", "ok");
     });
   }catch(err){
     console.error(err);
@@ -2786,7 +2817,7 @@ async function cloudPull(){
   }
 }
 
-/* ---------- BUTTON BINDING ---------- */
+/* ---------- UI wiring ---------- */
 function bindCloudButtons(){
   btnGoogleLogin?.addEventListener("click", ()=> loginGoogle().catch(console.error));
   btnGoogleLogout?.addEventListener("click", ()=> logoutGoogle().catch(console.error));
@@ -2794,32 +2825,38 @@ function bindCloudButtons(){
   btnCloudPull?.addEventListener("click", ()=> cloudPull().catch(console.error));
 }
 
-/* ---------- AUTH UI ---------- */
 async function wireCloudAuthUI(){
-  if(!firebaseConfigured()){
-    setCloudStatus("Nog niet mogelijk (Firebase niet geconfigureerd).");
-    [btnGoogleLogin, btnGoogleLogout, btnCloudPull, btnCloudPush].forEach(b=>{ if(b) b.disabled = true; });
+  // knoppen standaard uit tot we Firebase zeker hebben
+  setCloudUiEnabled(false);
+
+  if(!(await ensureFirebase())){
+    setCloudStatus("Cloud: niet geconfigureerd.");
+    if(elLoginNote) elLoginNote.textContent = "Nog niet mogelijk (Firebase niet geconfigureerd).";
     return;
   }
 
-  await ensureFirebase();
+  // Vanaf hier: Firebase OK
+  setCloudUiEnabled(true);
+  setCloudStatus("Niet ingelogd.");
 
+  // 1x listener (blijft actief)
   fbAuth.onAuthStateChanged((u)=>{
+    setLoginUi(u);
+
     if(u){
-      setCloudStatus(`✅ Ingelogd: ${u.email || "Google"}`);
-      if(btnGoogleLogin)  btnGoogleLogin.disabled  = true;
-      if(btnGoogleLogout) btnGoogleLogout.disabled = false;
-      if(btnCloudPull)    btnCloudPull.disabled    = false;
-      if(btnCloudPush)    btnCloudPush.disabled    = false;
+      setCloudStatus(`✅ Ingelogd: ${u.email || u.displayName || "Google"}`);
+      // login knop verbergen gebeurt al in setLoginUi
+      if(btnCloudPull) btnCloudPull.disabled = false;
+      if(btnCloudPush) btnCloudPush.disabled = false;
     }else{
       setCloudStatus("Niet ingelogd.");
-      if(btnGoogleLogin)  btnGoogleLogin.disabled  = false;
-      if(btnGoogleLogout) btnGoogleLogout.disabled = true;
-      if(btnCloudPull)    btnCloudPull.disabled    = true;
-      if(btnCloudPush)    btnCloudPush.disabled    = true;
+      if(btnCloudPull) btnCloudPull.disabled = true;
+      if(btnCloudPush) btnCloudPush.disabled = true;
     }
   });
 }
+
+
 /* =========================
      Settings
      ========================= */
@@ -3021,22 +3058,20 @@ window.addEventListener("offline", renderOnlineBadge);
    INIT
    ========================= */
 
-await wireCloudAuthUI();
-  
+async function init(){
+  try{
+    await handleRedirectLoginResult();
+  }catch(e){
+    console.warn("redirect init error:", e);
+  }
 
   try{
-  await handleRedirectLoginResult();
-}catch(e){
-  console.warn("redirect init error:", e);
-}
+    await wireCloudAuthUI();
+  }catch(e){
+    console.warn("auth UI error:", e);
+  }
 
-try{
-  await wireCloudAuthUI();
-}catch(e){
-  console.warn("auth UI error:", e);
-}
-
-bindCloudButtons();
+  bindCloudButtons();
 
   showTab("tab1");
 
