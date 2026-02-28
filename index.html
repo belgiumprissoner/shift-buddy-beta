@@ -1001,8 +1001,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
         <div class="muted" style="font-weight:950;" data-i18n="cloud_title">
           Google login + Cloud sync
         </div>
-        <div class="muted2" id="loginNote" data-i18n="cloud_not_available">
-          Nog niet mogelijk.
+<div class="muted2" id="loginNote"></div>
         </div>
       </div>
     </div>
@@ -1015,6 +1014,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
         Uitloggen
       </button>
     </div>
+    <div class="muted2" id="loginNote"></div>
 
     <div class="sp"></div>
 
@@ -1286,6 +1286,9 @@ let calMonth = new Date().getMonth();
       status_busy: "Bezig...",
       status_paused: "Gepauzeerd",
       status_not_started: "Niet gestart",
+      cloud_logged_in: "Ingelogd:",
+cloud_not_logged: "Niet ingelogd.",
+cloud_login_error: "Google login fout",
 
       recup_line: "RECUP - gaat van overuren af",
       net_line: "netto",
@@ -1359,6 +1362,9 @@ hours_amount_hhmm: "Aantal uren (HH:MM)",
       cloud_download: "Cloud → device",
       cloud_upload: "Device → cloud",
       settle_hint: "Have your overtime hours been paid out? Record them here to deduct them from your balance.",
+      cloud_logged_in: "Logged in:",
+cloud_not_logged: "Not logged in.",
+cloud_login_error: "Google login error",
 
       today_work: "Today (work)",
       week_work: "This week (work)",
@@ -1410,6 +1416,9 @@ hours_amount_hhmm: "Number of hours (HH:MM)",
       btn_close: "Fermer",
       btn_save: "Enregistrer",
       btn_delete: "Supprimer",
+      cloud_logged_in: "Connecté :",
+cloud_not_logged: "Non connecté.",
+cloud_login_error: "Erreur de connexion Google",
 
       lbl_date: "Date",
       lbl_type: "Type",
@@ -2671,25 +2680,27 @@ async function handleRedirectLoginResult(){
   if(!(await ensureFirebase())){
     setCloudStatus("Cloud: niet geconfigureerd.");
     setCloudUiEnabled(false);
-    if(elLoginNote) elLoginNote.textContent = "Nog niet mogelijk (Firebase niet geconfigureerd).";
     return;
   }
 
-  try{
+  const elLoginNote = document.getElementById("loginNote");
+
+  try {
     const res = await fbAuth.getRedirectResult();
-    if(res && res.user){
-      // onAuthStateChanged zal sowieso ook vuren; dit is enkel extra feedback
-      showToast(`✅ Ingelogd als ${res.user.email || "Google"}`, "ok");
+
+    if (res && res.user) {
+      showToast(`✅ ${t("cloud_logged_in")} ${res.user.email || "Google"}`, "ok");
     }
-  }catch(e){
+  } catch (e) {
     console.error("getRedirectResult:", e);
-    // Toon duidelijke fout (bv. auth/unauthorized-domain)
+
     const code = e?.code ? String(e.code) : "login-error";
-    const msg  = e?.message ? String(e.message) : "";
-    showToast(`❌ Google login fout (${code})`, "warn");
-    setCloudStatus(`❌ Login fout: ${code}`);
-    if(elLoginNote) elLoginNote.textContent = `Login fout: ${code}`;
-    if(msg) console.warn(msg);
+    showToast(`❌ ${t("cloud_login_error")} (${code})`, "warn");
+    setCloudStatus(`❌ ${t("cloud_login_error")}: ${code}`);
+
+    if (elLoginNote) {
+      elLoginNote.textContent = `❌ ${t("cloud_login_error")}: ${code}`;
+    }
   }
 }
 
