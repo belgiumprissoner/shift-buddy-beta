@@ -1354,7 +1354,7 @@ let calMonth = new Date().getMonth();
       btn_close: "Sluiten",
       btn_save: "Opslaan",
       btn_delete: "Verwijderen",
-      no_entries: "Nog ingevulde data gevonden.",
+      no_entries: "Geen ingevulde data gevonden.",
 
       lbl_date: "Datum",
       lbl_type: "Type",
@@ -1735,17 +1735,17 @@ en: {
 }
   };
 
-  /* =========================
-     i18n engine
-     ========================= */
-  let currentLang = localStorage.getItem("lang") || "nl";
-  if(!LANG[currentLang]) currentLang = "nl";
+/* =========================
+   i18n engine
+   ========================= */
+let currentLang = localStorage.getItem("lang") || "nl";
+if(!LANG[currentLang]) currentLang = "nl";
 
-  function t(key){
-    return LANG[currentLang]?.[key] ?? key;
-  }
+function t(key){
+  return LANG[currentLang]?.[key] ?? key;
+}
 
-  function applyLang(){
+function applyLang(){
 
   // gewone tekst
   document.querySelectorAll("[data-i18n]").forEach(el=>{
@@ -1765,17 +1765,22 @@ en: {
     const key = el.dataset.i18nAria;
     el.setAttribute("aria-label", t(key));
   });
-  // taal label + custom taalkeuze (geen standaard select popup)
+
+  // taal label + custom taalkeuze
   function getLangName(code){
     return code === "nl" ? "Nederlands" : code === "en" ? "English" : "Français";
   }
+
   function updateLangLabel(){
     const lbl = document.getElementById("langCurrentLabel");
     if(lbl) lbl.textContent = getLangName(currentLang);
   }
-  updateLangLabel();
-}
 
+  updateLangLabel();
+
+  // 👇 BELANGRIJK: dynamische content opnieuw tekenen
+  if(typeof renderHistory === "function") renderHistory();
+}
 function openLangModal(){
   const overlay  = document.getElementById("appModalOverlay");
   const body     = document.getElementById("appModalBody");
