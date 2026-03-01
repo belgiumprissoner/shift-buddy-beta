@@ -1287,9 +1287,9 @@ function setCloudUiEnabled(enabled){
   if(btnCloudPull)    btnCloudPull.disabled    = !enabled;
   if(btnCloudPush)    btnCloudPush.disabled    = !enabled;
 }
-function showStartSaldoInfo(){
+window.showStartSaldoInfo = function(){
   alert(t("start_saldo_info"));
-}
+};
 
 function setLoginUi(user){
   const loggedIn = !!user;
