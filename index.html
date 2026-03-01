@@ -995,14 +995,27 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
     <div class="sp"></div>
 
-<label id="lblEmployeeName">Naam werknemer</label>
-<input type="text" id="employeeName" placeholder="Jouw naam">
+<label id="lblEmployeeName" data-i18n="employee_name_label">
+  Naam werknemer
+</label>
+<input 
+  type="text" 
+  id="employeeName" 
+  placeholder="Jouw naam"
+  data-i18n-placeholder="employee_name_ph"
+/>
 
 <div class="sp"></div>
 
-<label id="lblEmployerName">Naam werkgever</label>
-<input type="text" id="employerName" placeholder="Naam werkgever">
-
+<label id="lblEmployerName" data-i18n="employer_name_label">
+  Naam werkgever
+</label>
+<input 
+  type="text" 
+  id="employerName" 
+  placeholder="Naam werkgever"
+  data-i18n-placeholder="employer_name_ph"
+/>
 <div class="sp"></div>
 
     <!-- Start saldo -->
@@ -1354,6 +1367,10 @@ let calMonth = new Date().getMonth();
       cloud_logged_in: "Ingelogd:",
 cloud_not_logged: "Niet ingelogd.",
 cloud_login_error: "Google login fout",
+employee_name_label: "Naam werknemer",
+employee_name_ph: "Jouw naam",
+employer_name_label: "Naam werkgever",
+employer_name_ph: "Naam werkgever",
 
       recup_line: "RECUP - gaat van overuren af",
       net_line: "netto",
@@ -1428,6 +1445,10 @@ reconciled_remove: "Verrekening verwijderen",
       make_pdf: "Make PDF",
       cancel: "Cancel",
       ok: "OK",
+      employee_name_label: "Employee name",
+employee_name_ph: "Your name",
+employer_name_label: "Employer name",
+employer_name_ph: "Employer name",
 
       backup: "Backup",
       import_json: "Import JSON",
@@ -1475,6 +1496,7 @@ verrek_none: "No settlement found on that day.",
 hours_amount_hhmm: "Number of hours (HH:MM)",
 
 
+
       status_busy: "Running...",
       status_paused: "Paused",
       status_not_started: "Not started",
@@ -1512,6 +1534,10 @@ cloud_login_error: "Erreur de connexion Google",
       lbl_pause: "Pause (min)",
       lbl_note: "Remarque (optionnel)",
       ph_note: "ex. Garage après tournée, embouteillage, attente client...",
+      employee_name_label: "Nom de l'employé",
+employee_name_ph: "Ton nom",
+employer_name_label: "Nom de l'employeur",
+employer_name_ph: "Nom de l'employeur",
 
       err_choose_date: "Choisis une date.",
       err_fill_times: "Remplis début et fin (ou choisis Jour de récup).",
