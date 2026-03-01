@@ -886,7 +886,11 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
         <div class="row">
 <button class="btnSave btnHalf" id="btnSave" data-i18n="save">Opslaan</button>
-          <button class="btnRecup btnHalf" id="btnRecup" data-i18n="recup">Recup</button>
+ <div class="label-with-info" style="justify-content:flex-end;">
+  <button class="btnRecup btnHalf" id="btnRecup" data-i18n="recup">Recup</button>
+  <span class="info-icon" id="infoRecup">ⓘ</span>
+  <div class="info-bubble" id="bubbleRecup" data-i18n="recup_info"></div>
+</div>
         </div>
 
   <div class="miniCard" style="margin-top:12px;">
@@ -1072,9 +1076,13 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 <div class="sp"></div>
 
     <!-- Pauze -->
-    <label for="pauseMin" data-i18n="default_pause">
-      Standaard pauze (min)
-    </label>
+<div class="label-with-info">
+  <label for="pauseMin" data-i18n="default_pause">
+    Standaard pauze (min)
+  </label>
+  <span class="info-icon" id="infoDefaultBreak">ⓘ</span>
+  <div class="info-bubble" id="bubbleDefaultBreak" data-i18n="default_break_info"></div>
+</div>
     <input id="pauseMin" type="number" min="0" step="5" value="30" />
 
     <div class="hr"></div>
@@ -1460,7 +1468,9 @@ reconciled_remove: "Verrekening verwijderen",
       calendar_info: "Hier krijg je een overzicht per dag. Je ziet wanneer je recup, ziekte, vakantie, feestdag had of gewerkt hebt.\nVerrekeningen worden weergegeven met een groen bolletje.\nTik op een dag om details te bekijken of iets toe te voegen.",
       settle_info: "Gebruik deze knop wanneer overuren zijn uitbetaald. Het ingegeven aantal uren wordt van je overurensaldo afgetrokken.",
       norm_day_info: "Dit is het aantal uren dat je normaal per werkdag moet presteren. Pauzes reken je hier niet mee. Alles daarboven telt als overuren.",
-      start_saldo_info: "Dit is het aantal overuren dat je al had vóór deze periode."
+      start_saldo_info: "Dit is het aantal overuren dat je al had vóór deze periode.",
+      default_break_info: "Deze pauze wordt automatisch afgetrokken van je gewerkte tijd wanneer je een dag opslaat. Dit geldt zowel voor de timer als voor handmatige invoer.",
+      recup_info: "Gebruik Recup wanneer je een volledige dag compenseert met opgebouwde overuren. Deze dag wordt van je overurensaldo afgetrokken."
     },
 
 en: {
@@ -1595,7 +1605,9 @@ en: {
   calendar_info: "Here you get a daily overview. You can see when you had a comp day, sick leave, vacation, public holiday or worked.\nSettlements are indicated with a green dot.\nTap a day to view details or add an entry.",
   settle_info: "Use this button when overtime hours have been paid out. The entered number of hours will be deducted from your overtime balance.",
   norm_day_info: "This is the number of hours you are expected to work on a normal day. Breaks are not included. Anything above this counts as overtime.",
-  start_saldo_info: "This is the overtime balance you already had before this period."
+  start_saldo_info: "This is the overtime balance you already had before this period.",
+  default_break_info: "This break is automatically deducted from your worked time when you save a day. This applies to both the timer and manual entries.",
+  recup_info: "Use Comp Day when you take a full day off using accumulated overtime. This day will be deducted from your overtime balance."
   
 },
 
@@ -1731,7 +1743,9 @@ en: {
   calendar_info: "Ici tu as une vue par jour. Tu vois quand tu avais un jour de récup, maladie, vacances, jour férié ou travaillé.\nLes régularisations sont indiquées par un point vert.\nAppuie sur un jour pour voir les détails ou ajouter une entrée.",
   settle_info: "Utilise ce bouton lorsque des heures supplémentaires ont été payées. Le nombre d’heures saisi sera déduit de ton solde d’heures supplémentaires.",
   norm_day_info: "C'est le nombre d'heures que tu dois normalement prester par jour. Les pauses ne sont pas comprises. Tout ce qui dépasse compte comme heures supplémentaires.",
-  start_saldo_info: "Il s'agit du solde d'heures supplémentaires que tu avais avant cette période."
+  start_saldo_info: "Il s'agit du solde d'heures supplémentaires que tu avais avant cette période.",
+  default_break_info: "Cette pause est automatiquement déduite de ton temps de travail lorsque tu enregistres une journée. Cela s'applique aussi bien au timer qu'aux entrées manuelles.",
+  recup_info: "Utilise Jour de récup lorsque tu prends une journée complète en compensation d’heures supplémentaires. Cette journée sera déduite de ton solde d’heures supplémentaires."
 }
   };
 
@@ -2024,11 +2038,15 @@ const elVacTaken = document.getElementById("vacTaken");
 
 const infoStartSaldo = document.getElementById("infoStartSaldo");
 const bubbleStartSaldo = document.getElementById("bubbleStartSaldo");
-
+const infoRecup = document.getElementById("infoRecup");
+const bubbleRecup = document.getElementById("bubbleRecup");
 const infoNormDay = document.getElementById("infoNormDay");
 const bubbleNormDay = document.getElementById("bubbleNormDay");
+const infoDefaultBreak = document.getElementById("infoDefaultBreak");
 
+const bubbleDefaultBreak = document.getElementById("bubbleDefaultBreak");
 const infoCalendar = document.getElementById("infoCalendar");
+
 const bubbleCalendar = document.getElementById("bubbleCalendar");
 
 const infoVerreken = document.getElementById("infoVerreken");
@@ -2041,6 +2059,14 @@ infoStartSaldo?.addEventListener("click", (e)=>{
   const isOpen = bubbleStartSaldo.style.display === "block";
   closeAllBubbles();
   bubbleStartSaldo.style.display = isOpen ? "none" : "block";
+});
+infoRecup?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!bubbleRecup) return;
+
+  const isOpen = bubbleRecup.style.display === "block";
+  closeAllBubbles();
+  bubbleRecup.style.display = isOpen ? "none" : "block";
 });
 
 infoCalendar?.addEventListener("click", (e)=>{
@@ -2060,6 +2086,14 @@ infoVerreken?.addEventListener("click", (e)=>{
   closeAllBubbles();
   bubbleVerreken.style.display = isOpen ? "none" : "block";
 });
+infoDefaultBreak?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!bubbleDefaultBreak) return;
+
+  const isOpen = bubbleDefaultBreak.style.display === "block";
+  closeAllBubbles();
+  bubbleDefaultBreak.style.display = isOpen ? "none" : "block";
+});
 infoNormDay?.addEventListener("click", (e)=>{
   e.stopPropagation();
   if(!bubbleNormDay) return;
@@ -2074,6 +2108,8 @@ function closeAllBubbles(){
   if(bubbleCalendar) bubbleCalendar.style.display = "none";
   if(bubbleVerreken) bubbleVerreken.style.display = "none";
   if(bubbleNormDay) bubbleNormDay.style.display = "none";
+  if(bubbleDefaultBreak) bubbleDefaultBreak.style.display = "none";
+  if(bubbleRecup) bubbleRecup.style.display = "none";
 }
 
 document.addEventListener("click", closeAllBubbles);
