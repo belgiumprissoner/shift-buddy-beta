@@ -3534,6 +3534,13 @@ window.addEventListener("offline", renderOnlineBadge);
    ========================= */
 
 async function init(){
+  const savedLang = localStorage.getItem("lang");
+  currentLang = savedLang || state?.settings?.lang || "nl";
+
+  state.settings = state.settings || {};
+  state.settings.lang = currentLang;
+  localStorage.setItem("lang", currentLang);
+  
   try{
     await handleRedirectLoginResult();
   }catch(e){
@@ -3550,18 +3557,23 @@ async function init(){
 
   showTab("tab1");
 
-  if(state.timer.running){
-    if(!interval) interval = setInterval(()=>{ 
-      updateTimerUI(); 
-      saveState(); 
-    }, 250);
-    setStatus("playing");
-  }else{
-    setStatus(state.timer.accMs>0 ? "paused" : "stopped");
-  }
+if(state.timer.running){
+  if(!interval) interval = setInterval(()=>{ 
+    updateTimerUI(); 
+    saveState(); 
+  }, 250);
+}
 
-  renderAll();
-  applyLang();
+// altijd opnieuw tekenen + vertalen
+renderAll();
+applyLang();
+
+// status altijd NA applyLang (juiste taal)
+setStatus(
+  state.timer.running
+    ? "playing"
+    : (state.timer.accMs > 0 ? "paused" : "stopped")
+);
 }
 
 init();
