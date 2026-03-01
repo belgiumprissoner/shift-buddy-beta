@@ -806,6 +806,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   display: flex;
   align-items: center;
   gap: 6px;
+  position: relative;
 }
 
 .info-icon {
@@ -817,6 +818,21 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
 .info-icon:hover {
   opacity: 1;
+}
+.info-bubble{
+  position:absolute;
+  top:28px;
+  left:0;
+  background:#1a0a10;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px 12px;
+  font-size:13px;
+  font-weight:700;
+  max-width:220px;
+  box-shadow:0 14px 40px rgba(0,0,0,.45);
+  display:none;
+  z-index:200;
 }
 
 </style>
@@ -1039,7 +1055,8 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   <label for="startSaldoInput" data-i18n="start_saldo">
     Start saldo overuren (u:min)
   </label>
-  <span class="info-icon" onclick="showStartSaldoInfo()">ⓘ</span>
+  <span class="info-icon" id="infoStartSaldo">ⓘ</span>
+<div class="info-bubble" id="bubbleStartSaldo" data-i18n="start_saldo_info"></div>
 </div>
 
 <input id="startSaldoInput" type="text" value="0:00" placeholder="60:00" />
@@ -1971,6 +1988,21 @@ const elVacTaken = document.getElementById("vacTaken");
   const elLastBackupText  = document.getElementById("lastBackupText");
   const btnBackupNow      = document.getElementById("btnBackupNow");
   const elStartSaldoInput = document.getElementById("startSaldoInput");
+
+const infoIcon = document.getElementById("infoStartSaldo");
+const bubble   = document.getElementById("bubbleStartSaldo");
+
+infoIcon?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!bubble) return;
+
+  const isOpen = bubble.style.display === "block";
+  bubble.style.display = isOpen ? "none" : "block";
+});
+
+document.addEventListener("click", ()=>{
+  if(bubble) bubble.style.display = "none";
+});
 
   const btnSaveSettings   = document.getElementById("btnSaveSettings");
 
