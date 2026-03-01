@@ -2025,6 +2025,9 @@ const elVacTaken = document.getElementById("vacTaken");
 const infoStartSaldo = document.getElementById("infoStartSaldo");
 const bubbleStartSaldo = document.getElementById("bubbleStartSaldo");
 
+const infoNormDay = document.getElementById("infoNormDay");
+const bubbleNormDay = document.getElementById("bubbleNormDay");
+
 const infoCalendar = document.getElementById("infoCalendar");
 const bubbleCalendar = document.getElementById("bubbleCalendar");
 
@@ -2057,11 +2060,20 @@ infoVerreken?.addEventListener("click", (e)=>{
   closeAllBubbles();
   bubbleVerreken.style.display = isOpen ? "none" : "block";
 });
+infoNormDay?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!bubbleNormDay) return;
+
+  const isOpen = bubbleNormDay.style.display === "block";
+  closeAllBubbles();
+  bubbleNormDay.style.display = isOpen ? "none" : "block";
+});
 
 function closeAllBubbles(){
   if(bubbleStartSaldo) bubbleStartSaldo.style.display = "none";
   if(bubbleCalendar) bubbleCalendar.style.display = "none";
   if(bubbleVerreken) bubbleVerreken.style.display = "none";
+  if(bubbleNormDay) bubbleNormDay.style.display = "none";
 }
 
 document.addEventListener("click", closeAllBubbles);
