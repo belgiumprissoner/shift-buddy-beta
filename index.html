@@ -837,6 +837,27 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 .info-bubble{
   white-space: pre-line;
 }
+/* === Recup knop bubble correct uitlijnen === */
+.recupWrap{
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 50%;
+}
+
+.recupWrap .btnRecup{
+  width: 100%;
+}
+
+.recupWrap .info-icon{
+  margin-left: 8px;
+}
+
+.recupWrap .info-bubble{
+  top: 52px;
+  left: auto;
+  right: 0;
+}
 
 </style>
 </head>
@@ -886,7 +907,8 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
         <div class="row">
 <button class="btnSave btnHalf" id="btnSave" data-i18n="save">Opslaan</button>
- <div class="label-with-info" style="justify-content:flex-end;">
+
+<div class="recupWrap">
   <button class="btnRecup btnHalf" id="btnRecup" data-i18n="recup">Recup</button>
   <span class="info-icon" id="infoRecup">ⓘ</span>
   <div class="info-bubble" id="bubbleRecup" data-i18n="recup_info"></div>
