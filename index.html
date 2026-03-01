@@ -447,6 +447,31 @@ select option{ background:#1b0b10; color:#fff; }
 input[type="date"], input[type="time"], select{ color-scheme: dark; }
 input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
+/* =========================
+   PDF export dialog (zodat inputs/knoppen zichtbaar zijn)
+   ========================= */
+.pdfDialog::backdrop{
+  background: rgba(0,0,0,.55);
+}
+.pdfDialog{
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.pdfDialog .pdfBox{
+  width: min(92vw, 520px);
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: #1a0a10;
+  color: var(--text);
+  box-shadow: 0 20px 70px rgba(0,0,0,.6);
+  padding: 16px;
+}
+.pdfDialog h3{ margin: 0; font-weight: 950; font-size: 22px; }
+.pdfDialog .radioLine{ display:flex; align-items:center; gap:10px; font-weight: 900; }
+.pdfDialog .row3{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pdfDialog .btnSmall{ height: 44px; padding: 0 14px; border-radius: 14px; }
+
 
 /* Modal save knop (groen pill, rechts) */
 #btnSaveModal,
@@ -486,7 +511,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   align-items:center;
   justify-content:center;
   padding:18px;
-  z-index:200;
+  z-index:10000;
 }
 .appModalOverlay.show{display:flex}
 .appModal{
@@ -792,7 +817,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
             <img src="ST-logo.png" alt="Shift Tap logo" class="app-logo">
             <div class="app-title-wrap">
               <h1>Shift-Tap</h1>
-              <div class="sub">v2.0.0</div>
+              <div class="sub">v2.0.1</div>
             </div>
           </div>
 
@@ -887,6 +912,12 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="btnSmall" id="btnAddManual" data-i18n="manual" type="button">+ Handmatig</button>
+
+        <button class="btnSmall" id="btnExportPdf"
+          data-i18n="pdf_export_btn"
+          data-i18n-aria="pdf_export_btn_aria"
+          aria-label=""
+          type="button">📄 PDF</button>
       </div>
     </div>
 
@@ -956,14 +987,23 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
 
     <!-- Taal -->
-    <label for="langSelect" data-i18n="language">Taal</label>
-    <select id="langSelect">
-      <option value="nl">Nederlands</option>
-      <option value="en">English</option>
-      <option value="fr">Français</option>
-    </select>
+    <label data-i18n="language">Taal</label>
+    <button id="btnLangOpen" type="button" class="btnSmall" style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+      <span id="langCurrentLabel">Nederlands</span>
+      <span aria-hidden="true">▾</span>
+    </button>
 
     <div class="sp"></div>
+
+<label id="lblEmployeeName">Naam werknemer</label>
+<input type="text" id="employeeName" placeholder="Jouw naam">
+
+<div class="sp"></div>
+
+<label id="lblEmployerName">Naam werkgever</label>
+<input type="text" id="employerName" placeholder="Naam werkgever">
+
+<div class="sp"></div>
 
     <!-- Start saldo -->
     <label for="startSaldoInput" data-i18n="start_saldo">
@@ -1106,7 +1146,16 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 
 </div>  <!-- einde van je wrap / tabs -->
 
-<!-- HIER PLAKKEN -->
+<!-- App modal overlay -->
+<div id="appModalOverlay" class="appModalOverlay" aria-hidden="true">
+  <div class="appModal">
+    <div id="appModalBody" class="appModalBody"></div>
+    <div class="appModalActions">
+      <button id="appModalCancel" class="btnSmall" data-i18n="cancel">Annuleren</button>
+      <button id="appModalOk" class="btnSmall" data-i18n="ok">OK</button>
+    </div>
+  </div>
+</div>
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
@@ -1141,6 +1190,9 @@ const APP_VERSION = "2.0.0";
 
 const STORE_KEY = `${APP_ID}_state_${APP_CHANNEL}`;
 const META_KEY  = `${APP_ID}_meta_${APP_CHANNEL}`;
+
+// Expose for extra modules (bv. pdf-export.js)
+window.SHIFTTAP_STORE_KEY = STORE_KEY;
 
 const NORM_MIN  = 7 * 60 + 30;
 const RECUP_MIN = 7 * 60 + 30;
@@ -1259,6 +1311,19 @@ let calMonth = new Date().getMonth();
       pause_stop: "Stop",
       save: "Opslaan",
       manual: "+ Handmatig",
+
+      // --- PDF export ---
+      pdf_export_btn: "📄 PDF",
+      pdf_export_btn_aria: "PDF export",
+      pdf_title: "PDF export",
+      pdf_month: "Maand",
+      pdf_dates: "Datums",
+      pdf_from: "Van",
+      pdf_to: "Tot",
+      make_pdf: "Maak PDF",
+      cancel: "Annuleren",
+      ok: "OK",
+
       backup: "Backup",
       import_json: "Import JSON",
       backup_tip: "Tip: Maak regelmatig backup.",
@@ -1270,12 +1335,12 @@ let calMonth = new Date().getMonth();
       cloud_not_available: "Nog niet mogelijk.",
       login_google: "Inloggen met Google",
       logout_google: "Uitloggen",
-      cloud_download: "Backup downl",
-      cloud_upload: " Maak Backup",
+      cloud_download: "Herstel v Backup",
+      cloud_upload: "Backup Maken",
       settle_hint: "Heb je overuren uitbetaald gekregen? Registreer ze hier zodat ze van je saldo worden afgetrokken.",
 
-      today_work: "Vandaag (werk)",
-      week_work: "Deze week (werk)",
+      today_work: "Vandaag",
+      week_work: "Deze week",
       overtime: "Saldo overuren",
       minutes: "min",
       hours: "u",
@@ -1307,6 +1372,9 @@ verrek_none: "Geen verrekening gevonden op die dag.",
   settle: "Verrekenen",
   overtime_settled: "Overuren verrekend",
 hours_amount_hhmm: "Aantal uren (HH:MM)",
+day_no_entry: "Geen entry op deze dag.",
+reconciled: "Verrekend",
+reconciled_remove: "Verrekening verwijderen",
 
       err_start_saldo_format: "Start saldo moet in formaat u:min zijn, bv 60:00",
       err_normday_format: "Norm dag moet in formaat u:min zijn, bv 7:30",
@@ -1348,6 +1416,19 @@ hours_amount_hhmm: "Aantal uren (HH:MM)",
       pause_stop: "Stop",
       save: "Save",
       manual: "+ Manual",
+
+      // --- PDF export ---
+      pdf_export_btn: "📄 PDF",
+      pdf_export_btn_aria: "Export PDF",
+      pdf_title: "PDF export",
+      pdf_month: "Month",
+      pdf_dates: "Dates",
+      pdf_from: "From",
+      pdf_to: "To",
+      make_pdf: "Make PDF",
+      cancel: "Cancel",
+      ok: "OK",
+
       backup: "Backup",
       import_json: "Import JSON",
       backup_tip: "Tip: Make regular backups.",
@@ -1365,9 +1446,13 @@ cloud_download: "Restore backup",
       cloud_logged_in: "Logged in:",
 cloud_not_logged: "Not logged in.",
 cloud_login_error: "Google login error",
+day_no_entry: "No entry on this day.",
+reconciled: "Reconciled",
+reconciled_remove: "Remove reconciliation",
 
-      today_work: "Today (work)",
-      week_work: "This week (work)",
+
+      today_work: "Today",
+      week_work: "This week",
       overtime: "Overtime balance",
       minutes: "min",
       hours: "h",
@@ -1441,6 +1526,19 @@ cloud_login_error: "Erreur de connexion Google",
       pause_stop: "Arrêter",
       save: "Enregistrer",
       manual: "+ Manuel",
+
+      // --- PDF export ---
+      pdf_export_btn: "📄 PDF",
+      pdf_export_btn_aria: "Exporter PDF",
+      pdf_title: "Export PDF",
+      pdf_month: "Mois",
+      pdf_dates: "Dates",
+      pdf_from: "De",
+      pdf_to: "À",
+      make_pdf: "Créer PDF",
+      cancel: "Annuler",
+      ok: "OK",
+
       backup: "Sauvegarde",
       import_json: "Importer JSON",
       backup_tip: "Astuce : faites régulièrement une sauvegarde.",
@@ -1456,8 +1554,8 @@ cloud_login_error: "Erreur de connexion Google",
 cloud_download: "Restaurer",
       settle_hint: "Des heures supplémentaires ont été payées ? Enregistre-les ici pour les déduire de ton solde.",
 
-      today_work: "Aujourd’hui (travail)",
-      week_work: "Cette semaine (travail)",
+      today_work: "Aujourd’hui",
+      week_work: "Cette semaine",
       overtime: "Solde heures sup",
       minutes: "min",
       hours: "h",
@@ -1478,6 +1576,9 @@ verrek_none: "Aucune régularisation trouvée ce jour-là.",
   settle: "Compenser",
   overtime_settled: "Heures supplémentaires réglées",
 hours_amount_hhmm: "Nombre d'heures (HH:MM)",
+day_no_entry: "Aucune entrée ce jour-là.",
+reconciled: "Régularisé",
+reconciled_remove: "Supprimer la régularisation",
 
       status_busy: "En cours...",
       status_paused: "En pause",
@@ -1528,17 +1629,78 @@ hours_amount_hhmm: "Nombre d'heures (HH:MM)",
     const key = el.dataset.i18nAria;
     el.setAttribute("aria-label", t(key));
   });
-
-  const sel = document.getElementById("langSelect");
-  if(sel) sel.value = currentLang;
+  // taal label + custom taalkeuze (geen standaard select popup)
+  function getLangName(code){
+    return code === "nl" ? "Nederlands" : code === "en" ? "English" : "Français";
+  }
+  function updateLangLabel(){
+    const lbl = document.getElementById("langCurrentLabel");
+    if(lbl) lbl.textContent = getLangName(currentLang);
+  }
+  updateLangLabel();
 }
 
+function openLangModal(){
+  const overlay  = document.getElementById("appModalOverlay");
+  const body     = document.getElementById("appModalBody");
+  const btnCancel= document.getElementById("appModalCancel");
+  const btnOk    = document.getElementById("appModalOk");
 
-document.getElementById("langSelect")?.addEventListener("change", e=>{
-  currentLang = e.target.value;
-  localStorage.setItem("lang", currentLang);
-  applyLang();
-});
+  if(!overlay || !body || !btnCancel) return;
+
+  const current = currentLang || localStorage.getItem("lang") || "nl";
+
+  // buttons (we kiezen meteen, geen OK nodig)
+  btnCancel.style.display = "inline-flex";
+  btnCancel.setAttribute("data-i18n","cancel");
+  if(btnOk) btnOk.style.display = "none";
+
+  body.innerHTML = `
+    <div style="font-size:28px; font-weight:800; margin-bottom:12px;">${t("language")}</div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      ${["nl","en","fr"].map(code => `
+        <button type="button" class="btnSmall" data-langpick="${code}"
+          style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px;">
+          <span>${getLangName(code)}</span>
+          <span style="opacity:${code===current?1:0.2}; font-weight:900;">●</span>
+        </button>
+      `).join("")}
+    </div>
+  `;
+
+  body.querySelectorAll("[data-langpick]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const code = b.getAttribute("data-langpick") || "nl";
+      currentLang = code;
+      localStorage.setItem("lang", currentLang);
+
+      // als je state/settings gebruikt, proberen we die ook bij te houden
+      try{
+        if(typeof state !== "undefined" && state?.settings){
+          state.settings.lang = currentLang;
+          if(typeof saveState === "function") saveState();
+        }
+      }catch(e){}
+
+      applyLang();       // vertaalt alles + zet label goed
+      updateLangLabel(); // extra zekerheid
+      closeAppModal();
+    });
+  });
+
+  applyLang(); // zodat "Annuleren" correct vertaalt
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden","false");
+}
+
+function closeAppModal(){
+  const overlay = document.getElementById("appModalOverlay");
+  if(!overlay) return;
+  overlay.classList.remove("show");
+      overlay.setAttribute("aria-hidden","true");
+}
+
+document.getElementById("btnLangOpen")?.addEventListener("click", openLangModal);
 const verrekenInput = document.getElementById("verrekenAmount");
 
 verrekenInput?.addEventListener("input", (e) => {
@@ -1608,7 +1770,13 @@ verrekenInput?.addEventListener("input", (e) => {
      State + Meta defaults
      ========================= */
   const defaultState = () => ({
-  settings: { startSaldoMin: 0, normDayMin: NORM_MIN, lang: "nl" },
+  settings: { 
+    startSaldoMin: 0, 
+    normDayMin: NORM_MIN, 
+    lang: "nl",
+    employeeName: "",
+    employerName: ""
+  },
   timer:    { running: false, startMs: null, accMs: 0 },
   entries:  [],
   verrekeningen: [],          
@@ -1625,16 +1793,32 @@ verrekenInput?.addEventListener("input", (e) => {
     const raw = localStorage.getItem(STORE_KEY);
     if(!raw) return defaultState();
     const s = JSON.parse(raw);
-    if(!s.settings) s.settings = { startSaldoMin: 0, normDayMin: NORM_MIN, lang:"nl" };
-    if(!s.timer)    s.timer    = { running:false, startMs:null, accMs:0 };
-    if(!Array.isArray(s.entries)) s.entries = [];
 
-    
-    if(!Array.isArray(s.verrekeningen)) s.verrekeningen = [];
-    if(typeof s.overtimePaidMinutes !== "number") s.overtimePaidMinutes = 0;
+    if(!s.settings) 
+      s.settings = { startSaldoMin: 0, normDayMin: NORM_MIN, lang:"nl" };
+
+    if(typeof s.settings.employeeName !== "string") 
+      s.settings.employeeName = "";
+
+    if(typeof s.settings.employerName !== "string") 
+      s.settings.employerName = "";
+
+    if(!s.timer)    
+      s.timer = { running:false, startMs:null, accMs:0 };
+
+    if(!Array.isArray(s.entries)) 
+      s.entries = [];
+
+    if(!Array.isArray(s.verrekeningen)) 
+      s.verrekeningen = [];
+
+    if(typeof s.overtimePaidMinutes !== "number") 
+      s.overtimePaidMinutes = 0;
 
     return s;
-  }catch(e){ return defaultState(); }
+  }catch(e){ 
+    return defaultState(); 
+  }
 }
 
   function loadMeta(){
@@ -1649,7 +1833,24 @@ verrekenInput?.addEventListener("input", (e) => {
   let state = loadState();
   let meta  = loadMeta();
 
-  function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+let cloudPushTimeout = null;
+
+function scheduleCloudPush(){
+  if(!fbAuth || !fbAuth.currentUser) return;
+
+  if(cloudPushTimeout){
+    clearTimeout(cloudPushTimeout);
+  }
+
+  cloudPushTimeout = setTimeout(()=>{
+    cloudPush().catch(console.error);
+  }, 5000);
+}
+
+  function saveState(){ 
+  localStorage.setItem(STORE_KEY, JSON.stringify(state)); 
+  scheduleCloudPush();
+}
   function saveMeta(){ localStorage.setItem(META_KEY, JSON.stringify(meta)); }
 
   /* =========================
@@ -1695,9 +1896,6 @@ const elVacTaken = document.getElementById("vacTaken");
   const mEnd              = document.getElementById("mEnd");
   const mPause            = document.getElementById("mPause");
   const mNote             = document.getElementById("mNote");
-
-  const langSelect        = document.getElementById("langSelect");
-  
   const elCalGrid  = document.getElementById("calGrid");
   const elCalLabel = document.getElementById("calLabel");
   const btnCalPrev = document.getElementById("calPrev");
@@ -1707,8 +1905,6 @@ const elVacTaken = document.getElementById("vacTaken");
      Boot lang from settings
      ========================= */
   currentLang = state.settings?.lang || currentLang || "nl";
-  if(langSelect) langSelect.value = currentLang;
-
   /* =========================
      Tabs navigation
      ========================= */
@@ -1746,7 +1942,81 @@ verrekenModal?.addEventListener("click", (e) => {
   if(e.target === verrekenModal) verrekenModal.style.display = "none";
 });
 
+function getLangName(code){
+  if(code === "nl") return "Nederlands";
+  if(code === "en") return "English";
+  return "Français";
+}
 
+function setLang(code){
+  currentLang = code;
+
+  localStorage.setItem("lang", code);
+
+  try {
+    if (window.state?.settings) {
+      state.settings.lang = code;
+      if (typeof saveState === "function") saveState();
+    }
+  } catch(e){}
+
+  if (typeof applyLang === "function") applyLang();
+
+  const lbl = document.getElementById("langCurrentLabel");
+  if (lbl) lbl.textContent = getLangName(code);
+}
+
+function openLangModal(){
+  const overlay = document.getElementById("appModalOverlay");
+  const body    = document.getElementById("appModalBody");
+  const btnCancel = document.getElementById("appModalCancel");
+  const btnOk     = document.getElementById("appModalOk");
+
+  if(!overlay || !body){
+    alert("Modal ontbreekt: appModalOverlay/appModalBody");
+    return;
+  }
+
+  const current = localStorage.getItem("lang") || window.currentLang || "nl";
+
+  body.innerHTML = `
+    <div style="font-size:26px;font-weight:800;margin-bottom:12px;">Taal</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${["nl","en","fr"].map(code => `
+        <button type="button" class="btnSmall" data-langpick="${code}"
+          style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
+          <span>${getLangName(code)}</span>
+          <span style="opacity:${code===current?1:0.2};font-weight:900;">●</span>
+        </button>
+      `).join("")}
+    </div>
+  `;
+
+  if(btnOk) btnOk.style.display = "none";
+
+  if(btnCancel){
+    btnCancel.style.display = "inline-flex";
+    btnCancel.onclick = () => {
+      overlay.style.display = "none";
+      overlay.setAttribute("aria-hidden","true");
+      if(btnOk) btnOk.style.display = "inline-flex";
+    };
+  }
+
+  body.querySelectorAll("[data-langpick]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      setLang(b.getAttribute("data-langpick"));
+      overlay.style.display = "none";
+      overlay.setAttribute("aria-hidden","true");
+      if(btnOk) btnOk.style.display = "inline-flex";
+    });
+  });
+
+  overlay.style.display = "flex";
+  overlay.setAttribute("aria-hidden","false");
+}
+
+document.getElementById("btnLangOpen")?.addEventListener("click", openLangModal)
   document.getElementById("btnOpenHistory")?.addEventListener("click", () => showTab("tab2"));
   document.getElementById("btnHome")?.addEventListener("click", () => showTab("tab1"));
   document.getElementById("btnOpenSettings")?.addEventListener("click", () => showTab("tab4"));
@@ -1909,7 +2179,9 @@ function renderCalendar(){
       .filter(v => !v.deletedAt && v.date === dateStr)
       .reduce((s,x)=> s + (x.minutes||0), 0);
 
-    const dot = vMins > 0 ? `<span class="calDotVerrek" title="Verrekend: ${formatHM(vMins)}"></span>` : "";
+    const dot = vMins > 0
+  ? `<span class="calDotVerrek" title="${t("reconciled")}: ${formatHM(vMins)}"></span>`
+  : "";
 
     cell.innerHTML = `
       ${pill}
@@ -1986,13 +2258,15 @@ function openDayDetail(ymdStr){
   if(!e){
     if(dayBody){
       dayBody.innerHTML = (vMins > 0)
-        ? `
-          <b>Verrekend</b><br>${formatHM(vMins)}
-          <div style="margin-top:12px;">
-            <button type="button" class="btnGhostSmall" id="btnUndoVerrek">Verrekening verwijderen</button>
-          </div>
-        `
-        : "Geen entry op deze dag.";
+   ? `
+  <b>${t("reconciled")}</b><br>${formatHM(vMins)}
+  <div style="margin-top:12px;">
+    <button type="button" class="btnGhostSmall" id="btnUndoVerrek">
+      ${t("reconciled_remove")}
+    </button>
+  </div>
+`
+: t("day_no_entry");
     }
     if(dayEdit) dayEdit.style.display = "none";
     if(dayOverlay) dayOverlay.style.display = "flex";
@@ -2014,6 +2288,8 @@ if(dayBody){
 
     const modalBack = document.getElementById("modalBack");
     if(modalBack) modalBack.style.display = "flex";
+    const dayOverlay = document.getElementById("dayOverlay");
+if(dayOverlay) dayOverlay.style.display = "none";
   });
 
   dayBody.appendChild(btn);
@@ -2063,21 +2339,20 @@ if(dayBody){
        ${noteLine}`;
   }
 
-  // ===== VERREKEND TONEN + UNDO =====
-  if(vMins > 0 && dayBody){
-    dayBody.innerHTML += `
-      <hr>
-      <div class="verrekRow">
-        <div><b>Verrekend</b><br>${formatHM(vMins)}</div>
-        <button type="button" class="btnGhostSmall" id="btnUndoVerrek">Verrekening verwijderen</button>
-      </div>
-    `;
-    document.getElementById("btnUndoVerrek")?.addEventListener("click", () => undoVerrekeningForDate(ymdStr));
-  }
-
-  if(dayOverlay) dayOverlay.style.display = "flex";
+// ===== VERREKEND TONEN + UNDO =====
+if(vMins > 0 && dayBody){
+  dayBody.innerHTML += `
+    <hr>
+    <div class="verrekRow">
+      <div><b>${t("reconciled")}</b><br>${formatHM(vMins)}</div>
+      <button type="button" class="btnGhostSmall" id="btnUndoVerrek">${t("reconciled_remove")}</button>
+    </div>
+  `;
+  document.getElementById("btnUndoVerrek")?.addEventListener("click", () => undoVerrekeningForDate(ymdStr));
 }
 
+if(dayOverlay) dayOverlay.style.display = "flex";
+}
 
 // =========================
 // HELPERS
@@ -2855,28 +3130,41 @@ async function wireCloudAuthUI(){
 
 
 /* =========================
-     Settings
-     ========================= */
-  function renderSettings(){
-    if(elStartSaldoInput) elStartSaldoInput.value = formatHM(state.settings.startSaldoMin || 0);
-    if(elNormDayInput)    elNormDayInput.value    = formatHM(state.settings.normDayMin ?? NORM_MIN);
-  }
+   Settings
+   ========================= */
+function renderSettings(){
+  if(elStartSaldoInput)
+    elStartSaldoInput.value = formatHM(state.settings.startSaldoMin || 0);
 
-  function saveSettings(){
-    const mins = parseHM(elStartSaldoInput?.value);
-    if(mins==null){ showToast(t("err_start_saldo_format"), "warn"); return; }
-    const norm = parseHM(elNormDayInput?.value);
-    if(norm==null){ showToast(t("err_normday_format"), "warn"); return; }
+  if(elNormDayInput)
+    elNormDayInput.value = formatHM(state.settings.normDayMin ?? NORM_MIN);
 
-    state.settings.startSaldoMin = mins;
-    state.settings.normDayMin = norm;
-    state.settings.lang = currentLang;
+  const emp = document.getElementById("employeeName");
+  const emr = document.getElementById("employerName");
 
-    saveState();
-    renderAll();
-    showToast(t("settings_saved"), "ok");
-  }
+  if(emp) emp.value = state.settings.employeeName || "";
+  if(emr) emr.value = state.settings.employerName || "";
+}
 
+function saveSettings(){
+  const mins = parseHM(elStartSaldoInput?.value);
+  if(mins==null){ showToast(t("err_start_saldo_format"), "warn"); return; }
+
+  const norm = parseHM(elNormDayInput?.value);
+  if(norm==null){ showToast(t("err_normday_format"), "warn"); return; }
+
+  state.settings.startSaldoMin = mins;
+  state.settings.normDayMin = norm;
+  state.settings.lang = currentLang;
+
+  // 👇 deze twee moeten erbij
+  state.settings.employeeName = (document.getElementById("employeeName")?.value || "").trim();
+  state.settings.employerName = (document.getElementById("employerName")?.value || "").trim();
+
+  saveState();
+  renderAll();
+  showToast(t("settings_saved"), "ok");
+}
   function renderOnlineBadge(){
     if(!elOnlineBadge) return;
     const online = navigator.onLine;
@@ -3037,16 +3325,6 @@ btnCloseModal?.addEventListener("click", closeModal);
 modalBack?.addEventListener("click", (e)=>{ if(e.target===modalBack) closeModal(); });
 btnSaveModal?.addEventListener("click", saveModal);
 btnDeleteInModal?.addEventListener("click", deleteEditing);
-
-if(langSelect){
-  langSelect.addEventListener("change", ()=>{
-    currentLang = langSelect.value;
-    state.settings.lang = currentLang;
-    saveState();
-    renderAll();
-  });
-}
-
 window.addEventListener("online", renderOnlineBadge);
 window.addEventListener("offline", renderOnlineBadge);
 
@@ -3101,6 +3379,58 @@ init();
   </div>
 </div>
 <!-- ===== TOEVOEGING CONFIRM MODAL END ===== -->
+
+
+<!-- ===== PDF EXPORT DIALOG ===== -->
+<dialog id="pdfDialog" class="pdfDialog">
+  <div class="pdfBox">
+    <h3 data-i18n="pdf_title">PDF export</h3>
+
+    <div class="sp"></div>
+
+    <label class="radioLine">
+      <input type="radio" name="pdfMode" value="month" checked>
+      <span data-i18n="pdf_month">Maand</span>
+    </label>
+
+    <label class="radioLine" style="margin-top:10px;">
+      <input type="radio" name="pdfMode" value="dates">
+      <span data-i18n="pdf_dates">Datums</span>
+    </label>
+
+    <div class="sp"></div>
+
+    <!-- Maand select -->
+    <div id="pdfMonthWrap">
+      <select id="pdfMonthSelect"></select>
+    </div>
+
+    <!-- Van/Tot -->
+    <div id="pdfRangeWrap" style="display:none; margin-top:10px;">
+      <div class="row3">
+        <div>
+          <label for="pdfFrom" data-i18n="pdf_from">Van</label>
+          <input id="pdfFrom" type="date">
+        </div>
+        <div>
+          <label for="pdfTo" data-i18n="pdf_to">Tot</label>
+          <input id="pdfTo" type="date">
+        </div>
+      </div>
+    </div>
+
+    <div class="sp"></div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+      <button class="btnSmall" id="pdfCancel" type="button" data-i18n="cancel">Annuleren</button>
+      <button class="btnSmall" id="pdfConfirm" type="button" data-i18n="make_pdf">Maak PDF</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- libs for PDF export -->
+<script src="jspdf.umd.min.js"></script>
+<script src="pdf-export.js"></script>
 
 
 </body>
