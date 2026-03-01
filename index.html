@@ -1274,9 +1274,9 @@ function setLoginUi(user){
   if(btnGoogleLogout) btnGoogleLogout.style.display = loggedIn ? "inline-flex" : "none";
   if(elLoginNote){
     elLoginNote.textContent = loggedIn
-      ? `✅ Ingelogd: ${user.email || user.displayName || "Google"}`
-      : `Niet ingelogd.`;
-  }
+      ? `✅ ${t("cloud_logged_in")} ${user.email || user.displayName || "Google"}`
+      : t("cloud_not_logged");
+}
 }
 
 
@@ -1302,6 +1302,7 @@ let calMonth = new Date().getMonth();
       btn_close: "Sluiten",
       btn_save: "Opslaan",
       btn_delete: "Verwijderen",
+      no_entries: "Nog ingevulde data gevonden.",
 
       lbl_date: "Datum",
       lbl_type: "Type",
@@ -1367,6 +1368,8 @@ let calMonth = new Date().getMonth();
       cloud_logged_in: "Ingelogd:",
 cloud_not_logged: "Niet ingelogd.",
 cloud_login_error: "Google login fout",
+cloud_logged_in: "Ingelogd:",
+cloud_not_logged: "Niet ingelogd.",
 employee_name_label: "Naam werknemer",
 employee_name_ph: "Jouw naam",
 employer_name_label: "Naam werkgever",
@@ -1389,7 +1392,7 @@ verrek_none: "Geen verrekening gevonden op die dag.",
   settle: "Verrekenen",
   overtime_settled: "Overuren verrekend",
 hours_amount_hhmm: "Aantal uren (HH:MM)",
-day_no_entry: "Geen entry op deze dag.",
+day_no_entry: "Geen invoer op deze dag.",
 reconciled: "Verrekend",
 reconciled_remove: "Verrekening verwijderen",
 
@@ -1422,12 +1425,14 @@ en: {
   btn_save: "Save",
   btn_delete: "Delete",
   btn_add_manual: "Add manual",
+  no_entries: "No entries yet.",
 
   // ===== Manual modal =====
   modal_add_title: "Add manually",
   modal_edit_title: "Edit entry",
   modal_hint: "Forgot to clock out? Just add the correct times.",
-
+  history_hint: "Forgot to clock out?<br>Add it manually.",
+  
   lbl_date: "Date",
   lbl_type: "Type",
   lbl_start: "Start (HH:MM)",
@@ -1462,7 +1467,7 @@ en: {
   cloud_logged_in: "Logged in:",
   cloud_not_logged: "Not logged in.",
   cloud_login_error: "Google login error",
-
+ 
   // ===== Backup =====
   backup: "Backup",
   backup_last: "Last backup",
@@ -1549,11 +1554,13 @@ en: {
   btn_save: "Enregistrer",
   btn_delete: "Supprimer",
   btn_add_manual: "Ajouter",
+  no_entries: "Aucune entrée pour l’instant.",
 
   // ===== Modal manuel =====
   modal_add_title: "Ajout manuel",
   modal_edit_title: "Modifier l’entrée",
   modal_hint: "Tu as oublié de pointer ? Ajoute simplement les bonnes heures.",
+  history_hint: "Tu as oublié de pointer ?<br>Ajoute-le manuellement.",
 
   lbl_date: "Date",
   lbl_type: "Type",
@@ -2853,11 +2860,14 @@ ${t("pause_line")} ${e.pauseMin||0} ${t("minutes")}${noteLine}`;
       .slice()
       .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 
-    if(list.length===0){
-      elHistoryList.innerHTML = `<div class="muted" style="font-weight:950; margin-top:12px;">Nog geen entries.</div>`;
-      return;
-    }
-
+if(list.length===0){
+  elHistoryList.innerHTML = `
+    <div class="muted" style="font-weight:950; margin-top:12px;">
+      ${t("no_entries")}
+    </div>
+  `;
+  return;
+}
     elHistoryList.innerHTML = "";
     list.forEach(e=>{
       const div = document.createElement("div");
