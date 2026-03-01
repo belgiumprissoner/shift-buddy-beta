@@ -834,6 +834,9 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   display:none;
   z-index:200;
 }
+.info-bubble{
+  white-space: pre-line;
+}
 
 </style>
 </head>
@@ -889,10 +892,11 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   <div class="miniCard" style="margin-top:12px;">
   <div class="k" data-i18n="overtime">Saldo overuren</div>
   <div id="overtimeSaldo" class="v" style="font-size:28px; font-weight:900; margin-top:6px;">0:00</div>
-<button class="btnSmall" id="btnVerreken" type="button"
-        style="margin-top:14px; margin-left:auto; display:block;"
-        data-i18n="settle">
-</button>
+<div class="label-with-info" style="justify-content:flex-end; margin-top:14px;">
+  <button class="btnSmall" id="btnVerreken" type="button" data-i18n="settle">Verrekenen</button>
+  <span class="info-icon" id="infoVerreken">ⓘ</span>
+  <div class="info-bubble" id="bubbleVerreken" data-i18n="settle_info"></div>
+</div>
 </div>
 <!-- ===== Verrekenen modal ===== -->
 <div id="verrekenModal" class="modalBack" style="display:none;">
@@ -965,7 +969,11 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 <div id="tab3" class="tab" style="display:none;">
   <div class="card">
     <div class="h2Row">
-      <h2 data-i18n="calendar">Kalender</h2>
+ <div class="label-with-info" style="margin-bottom:8px;">
+  <h2 data-i18n="calendar" style="margin:0;">Kalender</h2>
+  <span class="info-icon" id="infoCalendar">ⓘ</span>
+  <div class="info-bubble" id="bubbleCalendar" data-i18n="calendar_info"></div>
+</div>
 
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="btnSmall" id="calPrev" type="button">◀</button>
@@ -1072,9 +1080,13 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
     <div class="hr"></div>
 
     <!-- Normale werkdag -->
-    <label for="normDayInput" data-i18n="norm_day">
-      Duur normale werkdag (u:min)
-    </label>
+<div class="label-with-info">
+  <label for="normDayInput" data-i18n="norm_day">
+    Duur normale werkdag (u:min)
+  </label>
+  <span class="info-icon" id="infoNormDay">ⓘ</span>
+  <div class="info-bubble" id="bubbleNormDay" data-i18n="norm_day_info"></div>
+</div>
     <input id="normDayInput" type="text" value="7:30" placeholder="7:30" />
 
     <div class="row" style="margin-top:16px;">
@@ -1435,7 +1447,7 @@ hours_amount_hhmm: "Aantal uren (HH:MM)",
 day_no_entry: "Geen invoer op deze dag.",
 reconciled: "Verrekend",
 reconciled_remove: "Verrekening verwijderen",
-start_saldo_info: "Dit is het aantal overuren dat je al had vóór deze periode.",
+
 
       err_start_saldo_format: "Start saldo moet in formaat u:min zijn, bv 60:00",
       err_normday_format: "Norm dag moet in formaat u:min zijn, bv 7:30",
@@ -1443,7 +1455,12 @@ start_saldo_info: "Dit is het aantal overuren dat je al had vóór deze periode.
       status_online: "Status: online",
       status_offline: "Status: offline",
       err_bad_json: "Ongeldig JSON bestand.",
-      err_timer_short: "Timer is te kort. Gebruik START of + Handmatig."
+      err_timer_short: "Timer is te kort. Gebruik START of + Handmatig.",
+      
+      calendar_info: "Hier krijg je een overzicht per dag. Je ziet wanneer je recup, ziekte, vakantie, feestdag had of gewerkt hebt.\nVerrekeningen worden weergegeven met een groen bolletje.\nTik op een dag om details te bekijken of iets toe te voegen.",
+      settle_info: "Gebruik deze knop wanneer overuren zijn uitbetaald. Het ingegeven aantal uren wordt van je overurensaldo afgetrokken.",
+      norm_day_info: "Dit is het aantal uren dat je normaal per werkdag moet presteren. Pauzes reken je hier niet mee. Alles daarboven telt als overuren.",
+      start_saldo_info: "Dit is het aantal overuren dat je al had vóór deze periode."
     },
 
 en: {
@@ -1559,7 +1576,7 @@ en: {
   start_saldo: "Start overtime balance (h:mm)",
   default_pause: "Default break (min)",
   norm_day: "Normal workday duration (h:mm)",
-  start_saldo_info: "This is the overtime balance you already had before this period.",
+  
 
   // ===== Errors =====
   err_choose_date: "Choose a date.",
@@ -1573,7 +1590,13 @@ en: {
   day_no_entry: "No entry on this day.",
   edit_btn: "✎ Edit",
   edit_aria: "Edit",
-  note_label: "Note"
+  note_label: "Note",
+  
+  calendar_info: "Here you get a daily overview. You can see when you had a comp day, sick leave, vacation, public holiday or worked.\nSettlements are indicated with a green dot.\nTap a day to view details or add an entry.",
+  settle_info: "Use this button when overtime hours have been paid out. The entered number of hours will be deducted from your overtime balance.",
+  norm_day_info: "This is the number of hours you are expected to work on a normal day. Breaks are not included. Anything above this counts as overtime.",
+  start_saldo_info: "This is the overtime balance you already had before this period."
+  
 },
 
     fr: {
@@ -1689,7 +1712,7 @@ en: {
   start_saldo: "Solde initial heures sup (h:mm)",
   default_pause: "Pause par défaut (min)",
   norm_day: "Durée normale de travail (h:mm)",
-  start_saldo_info: "Il s'agit du solde d'heures supplémentaires que tu avais avant cette période.",
+  
 
   // ===== Erreurs =====
   err_choose_date: "Choisis une date.",
@@ -1704,6 +1727,11 @@ en: {
   edit_btn: "✎ Modifier",
   edit_aria: "Modifier",
   note_label: "Remarque"
+  
+  calendar_info: "Ici tu as une vue par jour. Tu vois quand tu avais un jour de récup, maladie, vacances, jour férié ou travaillé.\nLes régularisations sont indiquées par un point vert.\nAppuie sur un jour pour voir les détails ou ajouter une entrée.",
+  settle_info: "Utilise ce bouton lorsque des heures supplémentaires ont été payées. Le nombre d’heures saisi sera déduit de ton solde d’heures supplémentaires.",
+  norm_day_info: "C'est le nombre d'heures que tu dois normalement prester par jour. Les pauses ne sont pas comprises. Tout ce qui dépasse compte comme heures supplémentaires.",
+  start_saldo_info: "Il s'agit du solde d'heures supplémentaires que tu avais avant cette période."
 }
   };
 
@@ -1989,20 +2017,49 @@ const elVacTaken = document.getElementById("vacTaken");
   const btnBackupNow      = document.getElementById("btnBackupNow");
   const elStartSaldoInput = document.getElementById("startSaldoInput");
 
-const infoIcon = document.getElementById("infoStartSaldo");
-const bubble   = document.getElementById("bubbleStartSaldo");
+const infoStartSaldo = document.getElementById("infoStartSaldo");
+const bubbleStartSaldo = document.getElementById("bubbleStartSaldo");
 
-infoIcon?.addEventListener("click", (e)=>{
+const infoCalendar = document.getElementById("infoCalendar");
+const bubbleCalendar = document.getElementById("bubbleCalendar");
+
+const infoVerreken = document.getElementById("infoVerreken");
+const bubbleVerreken = document.getElementById("bubbleVerreken");
+
+infoStartSaldo?.addEventListener("click", (e)=>{
   e.stopPropagation();
-  if(!bubble) return;
+  if(!bubbleStartSaldo) return;
 
-  const isOpen = bubble.style.display === "block";
-  bubble.style.display = isOpen ? "none" : "block";
+  const isOpen = bubbleStartSaldo.style.display === "block";
+  closeAllBubbles();
+  bubbleStartSaldo.style.display = isOpen ? "none" : "block";
 });
 
-document.addEventListener("click", ()=>{
-  if(bubble) bubble.style.display = "none";
+infoCalendar?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!bubbleCalendar) return;
+
+  const isOpen = bubbleCalendar.style.display === "block";
+  closeAllBubbles();
+  bubbleCalendar.style.display = isOpen ? "none" : "block";
 });
+
+infoVerreken?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  if(!bubbleVerreken) return;
+
+  const isOpen = bubbleVerreken.style.display === "block";
+  closeAllBubbles();
+  bubbleVerreken.style.display = isOpen ? "none" : "block";
+});
+
+function closeAllBubbles(){
+  if(bubbleStartSaldo) bubbleStartSaldo.style.display = "none";
+  if(bubbleCalendar) bubbleCalendar.style.display = "none";
+  if(bubbleVerreken) bubbleVerreken.style.display = "none";
+}
+
+document.addEventListener("click", closeAllBubbles);
 
   const btnSaveSettings   = document.getElementById("btnSaveSettings");
 
