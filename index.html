@@ -802,6 +802,22 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   background: rgba(0,255,120,.9);
   box-shadow: 0 0 0 2px rgba(0,0,0,.25);
 }
+.label-with-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-icon {
+  font-size: 14px;
+  opacity: 0.7;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.info-icon:hover {
+  opacity: 1;
+}
 
 </style>
 </head>
@@ -1018,13 +1034,17 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 />
 <div class="sp"></div>
 
-    <!-- Start saldo -->
-    <label for="startSaldoInput" data-i18n="start_saldo">
-      Start saldo overuren (u:min)
-    </label>
-    <input id="startSaldoInput" type="text" value="0:00" placeholder="60:00" />
+<!-- Start saldo -->
+<div class="label-with-info">
+  <label for="startSaldoInput" data-i18n="start_saldo">
+    Start saldo overuren (u:min)
+  </label>
+  <span class="info-icon" onclick="showStartSaldoInfo()">ⓘ</span>
+</div>
 
-    <div class="sp"></div>
+<input id="startSaldoInput" type="text" value="0:00" placeholder="60:00" />
+
+<div class="sp"></div>
 
     <!-- Pauze -->
     <label for="pauseMin" data-i18n="default_pause">
@@ -1267,6 +1287,9 @@ function setCloudUiEnabled(enabled){
   if(btnCloudPull)    btnCloudPull.disabled    = !enabled;
   if(btnCloudPush)    btnCloudPush.disabled    = !enabled;
 }
+function showStartSaldoInfo(){
+  alert(t("start_saldo_info"));
+}
 
 function setLoginUi(user){
   const loggedIn = !!user;
@@ -1395,6 +1418,7 @@ hours_amount_hhmm: "Aantal uren (HH:MM)",
 day_no_entry: "Geen invoer op deze dag.",
 reconciled: "Verrekend",
 reconciled_remove: "Verrekening verwijderen",
+start_saldo_info: "Dit is het aantal overuren dat je al had vóór deze periode.",
 
       err_start_saldo_format: "Start saldo moet in formaat u:min zijn, bv 60:00",
       err_normday_format: "Norm dag moet in formaat u:min zijn, bv 7:30",
@@ -1518,6 +1542,7 @@ en: {
   start_saldo: "Start overtime balance (h:mm)",
   default_pause: "Default break (min)",
   norm_day: "Normal workday duration (h:mm)",
+  start_saldo_info: "This is the overtime balance you already had before this period.",
 
   // ===== Errors =====
   err_choose_date: "Choose a date.",
@@ -1647,6 +1672,7 @@ en: {
   start_saldo: "Solde initial heures sup (h:mm)",
   default_pause: "Pause par défaut (min)",
   norm_day: "Durée normale de travail (h:mm)",
+  start_saldo_info: "Il s'agit du solde d'heures supplémentaires que tu avais avant cette période.",
 
   // ===== Erreurs =====
   err_choose_date: "Choisis une date.",
