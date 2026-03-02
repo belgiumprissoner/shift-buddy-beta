@@ -2847,10 +2847,32 @@ function hmFromMinutes(mins){
   }
 
   function msgRecupConfirm(){
-    if(currentLang === "fr") return `Ajouter un jour de récup pour ${dmy(new Date())} ?\nCela enlève 7h30 de tes heures sup.`;
-    if(currentLang === "en") return `Add comp day for ${dmy(new Date())}?\nThis subtracts 7h30 from your overtime.`;
-    return `RECUP toevoegen voor ${dmy(new Date())}?\nDit doet 7u30 op je overuren.`;
+  const mins = (state.settings?.normDayMin ?? NORM_MIN);
+  const hh = Math.floor(mins / 60);
+  const mm = mins % 60;
+
+  const nl = `${hh}u${mm.toString().padStart(2,"0")}`;
+  const fr = `${hh}h${mm.toString().padStart(2,"0")}`;
+  const en = `${hh}:${mm.toString().padStart(2,"0")}`;
+
+  const hasNorm = mins > 0;
+
+  if(currentLang === "fr"){
+    return hasNorm
+      ? `Ajouter un jour de récup pour ${dmy(new Date())} ?\nCela déduit ${fr} de vos heures sup.`
+      : `Ajouter un jour de récup pour ${dmy(new Date())} ?`;
   }
+
+  if(currentLang === "en"){
+    return hasNorm
+      ? `Add comp day for ${dmy(new Date())}?\nThis subtracts ${en} from your overtime.`
+      : `Add comp day for ${dmy(new Date())}?`;
+  }
+
+  return hasNorm
+    ? `Recup toevoegen voor ${dmy(new Date())}?\nDit trekt ${nl} af van je overuren.`
+    : `Recup toevoegen voor ${dmy(new Date())}?`;
+}
 
   function addRecup(){
     openConfirm(msgRecupConfirm(), () => {
