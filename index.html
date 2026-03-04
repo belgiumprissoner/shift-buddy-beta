@@ -873,7 +873,7 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
             <img src="ST-logo.png" alt="Shift Tap logo" class="app-logo">
             <div class="app-title-wrap">
               <h1>Shift-Tap</h1>
-              <div class="sub">v2.0.2</div>
+<div class="sub" id="appVersionText">v2.0.2</div>
             </div>
           </div>
 
@@ -1278,12 +1278,15 @@ window.onerror = function(message, source, lineno, colno, error){
   alert("JS fout:\n" + message + "\nLijn: " + lineno + ":" + colno);
   return false;
 };
+alert("SHIFT-TAP SCRIPT LOADED: " + (typeof APP_VERSION !== "undefined" ? APP_VERSION : "no version"));
   /* =========================
-     ShiftTap (try Gmail)
+     ShiftTap + + + setuppage
      ========================= */
   const APP_ID = "shifttap";
-const APP_CHANNEL = "stable_try_gmailv1";
-const APP_VERSION = "2.0.0";
+const APP_CHANNEL = "stable_met_gmail_pdf_setuppagev1";
+const APP_VERSION = "2.0.3";
+document.getElementById("appVersionText")?.textContent = "v" + APP_VERSION;
+
 
 const STORE_KEY = `${APP_ID}_state_${APP_CHANNEL}`;
 const META_KEY  = `${APP_ID}_meta_${APP_CHANNEL}`;
@@ -1294,11 +1297,14 @@ window.SHIFTTAP_STORE_KEY = STORE_KEY;
 const NORM_MIN  = 0;
 const RECUP_MIN = 0;
 
+// Setup flag (per channel)
+const SETUP_KEY = `${APP_ID}_setupDone_${APP_CHANNEL}`;
+
 function isSetupDone(){
-  return localStorage.getItem("setupDone") === "1";
+  return localStorage.getItem(SETUP_KEY) === "1";
 }
 function markSetupDone(){
-  localStorage.setItem("setupDone", "1");
+  localStorage.setItem(SETUP_KEY, "1");
 }
 
 // =========================
@@ -3627,18 +3633,23 @@ window.addEventListener("offline", renderOnlineBadge);
 
 async function init(){
 
+  // Stop normale init als setup nog niet gedaan is
   if(!isSetupDone()){
-    console.log("SETUP NODIG");
-    return; // belangrijk: stopt de normale init
+    const overlay = document.getElementById("setupOverlay");
+    if(overlay){
+      overlay.style.display = "flex";
+    }
+    return;
   }
-  
+
+  // Taal instellen (mag pas na setup)
   const savedLang = localStorage.getItem("lang");
   currentLang = savedLang || state?.settings?.lang || "nl";
 
   state.settings = state.settings || {};
   state.settings.lang = currentLang;
   localStorage.setItem("lang", currentLang);
-  
+
   try{
     await handleRedirectLoginResult();
   }catch(e){
@@ -3652,38 +3663,62 @@ async function init(){
   }
 
   bindCloudButtons();
-
   showTab("tab1");
 
-if(state.timer.running){
-  if(!interval) interval = setInterval(()=>{ 
-    updateTimerUI(); 
-    saveState(); 
-  }, 250);
+  if(state.timer.running){
+    if(!interval) interval = setInterval(()=>{ 
+      updateTimerUI(); 
+      saveState(); 
+    }, 250);
+  }
 }
 
-if (isSetupDone()) {
-  // altijd opnieuw tekenen + vertalen
-  renderAll();
-  applyLang();
+document.addEventListener("DOMContentLoaded", () => {
 
-  // status altijd NA applyLang (juiste taal)
-  setStatus(
-    state.timer.running
-      ? "playing"
-      : (state.timer.accMs > 0 ? "paused" : "stopped")
-  );
-}
-}
-document.getElementById("btnTestSetup")?.addEventListener("click", () => {
-  markSetupDone();
-  location.reload();
+  // TEST button (alleen actief als setup NIET klaar is)
+  const btn = document.getElementById("btnTestSetup");
+  if(btn){
+    btn.textContent = "SETUP=" + (localStorage.getItem(SETUP_KEY) ?? "null");
+
+    if(!isSetupDone()){
+      btn.style.display = "block";
+      btn.addEventListener("click", () => {
+        markSetupDone();
+        location.reload();
+      });
+    }else{
+      btn.style.display = "none"; // verberg als setup al gedaan is
+    }
+  }
+
+  // ===== SETUP START BUTTON =====
+  const setupBtn = document.getElementById("btnSetupStart");
+  if(setupBtn){
+    setupBtn.addEventListener("click", () => {
+
+      const normHours = parseFloat(document.getElementById("setupNormHours")?.value);
+      const pauseMin  = parseInt(document.getElementById("setupPauseMin")?.value);
+
+      if(isNaN(normHours) || isNaN(pauseMin)){
+        alert("Vul beide velden correct in.");
+        return;
+      }
+
+      state.settings = state.settings || {};
+      state.settings.normMinutes = Math.round(normHours * 60);
+      state.settings.pauseMinutes = pauseMin;
+
+      saveState();
+      markSetupDone();
+
+      const overlay = document.getElementById("setupOverlay");
+      if(overlay) overlay.style.display = "none";
+
+      location.reload();
+    });
+  }
+  init();
 });
-
-
-init();
-})();
-
 </script>
 <!-- ===== TOEVOEGING CONFIRM MODAL START ===== -->
 <div class="appModalOverlay" id="appModalOverlay" aria-hidden="true">
@@ -3750,9 +3785,43 @@ init();
 <script src="jspdf.umd.min.js"></script>
 <script src="pdf-export.js"></script>
 
-<button id="btnTestSetup" style="position:fixed;bottom:10px;right:10px;z-index:9999;">
+<button id="btnTestSetup" style="display:none; position:fixed; bottom:10px; right:10px; z-index:9999;">
   TEST Setup Done
 </button>
+
+<!-- ===== SETUP MODAL START ===== -->
+<div class="appModalOverlay" id="setupOverlay" style="display:none;" aria-hidden="true">
+  <div class="appModal" role="dialog" aria-modal="true">
+    
+    <div class="appModalBody">
+      <h2>Welkom bij Shift-Tap 👋</h2>
+      <p>
+        Werkuren, recup en overuren zonder gedoe.
+        Stel eerst even je basisinstellingen in.
+      </p>
+
+      <hr style="margin:15px 0; opacity:.2;">
+
+      <label>Normale werkdag (uren)</label>
+      <input type="number" id="setupNormHours" step="0.25" min="0" placeholder="bv. 7.5">
+
+      <label>Pauze (minuten)</label>
+      <input type="number" id="setupPauseMin" step="5" min="0" placeholder="bv. 30">
+
+      <p style="font-size:12px; opacity:.7; margin-top:10px;">
+        Je kan deze instellingen later altijd aanpassen bij Instellingen.
+      </p>
+    </div>
+
+    <div class="appModalActions">
+      <button type="button" class="btnGreen" id="btnSetupStart">
+        Klaar voor gebruik
+      </button>
+    </div>
+
+  </div>
+</div>
+<!-- ===== SETUP MODAL END ===== -->
 
 </body>
 </html>
