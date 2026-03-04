@@ -1274,6 +1274,8 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 <script>
 (() => {
 
+alert("SCRIPT START");
+
 window.onerror = function(message, source, lineno, colno, error){
   alert("JS fout:\n" + message + "\nLijn: " + lineno + ":" + colno);
   return false;
