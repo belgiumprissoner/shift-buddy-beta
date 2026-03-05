@@ -3797,22 +3797,46 @@ init();
 <div class="appModalOverlay" id="setupOverlay" style="display:none;" aria-hidden="true">
   <div class="appModal" role="dialog" aria-modal="true">
     
+    <div class="appModalOverlay" id="setupOverlay" style="display:none;" aria-hidden="true">
+  <div class="appModal" role="dialog" aria-modal="true">
+    
     <div class="appModalBody">
       <h2>Welkom bij Shift-Tap 👋</h2>
       <p>
         Werkuren, recup en overuren zonder gedoe.
-        Stel eerst even je basisinstellingen in.
+       <br> Stel eerst even je basisinstellingen in.
       </p>
 
       <hr style="margin:15px 0; opacity:.2;">
 
-      <label>Normale werkdag (uren)</label>
-      <input type="number" id="setupNormHours" step="0.25" min="0" placeholder="bv. 7.5">
+      <!-- grid -->
+      <div class="setupGrid">
+        <div class="setupField">
+          <label for="setupNormHours">Normale werkdag (uren)</label>
+          <input
+            type="number"
+            id="setupNormHours"
+            step="0.25"
+            min="0"
+            inputmode="decimal"
+            placeholder="bv. 7.5">
+          <div class="setupHint">Voorbeeld: 7.5 = 7u30</div>
+        </div>
 
-      <label>Pauze (minuten)</label>
-      <input type="number" id="setupPauseMin" step="5" min="0" placeholder="bv. 30">
+        <div class="setupField">
+          <label for="setupPauseMin">Pauze (minuten)</label>
+          <input
+            type="number"
+            id="setupPauseMin"
+            step="5"
+            min="0"
+            inputmode="numeric"
+            placeholder="bv. 30">
+          <div class="setupHint">Wordt automatisch afgetrokken bij berekening.</div>
+        </div>
+      </div>
 
-      <p style="font-size:12px; opacity:.7; margin-top:10px;">
+      <p class="setupNote">
         Je kan deze instellingen later altijd aanpassen bij Instellingen.
       </p>
     </div>
