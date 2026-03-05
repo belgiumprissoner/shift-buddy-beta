@@ -861,6 +861,19 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
 .setupHint{
 margin-bottom: 16px;
 }
+.setupLangRow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin: 10px 0 14px;
+}
+.setupLangLabel{
+  min-width: 70px;
+  opacity:.85;
+}
+.setupLangSelect{
+  flex:1;
+}
 </style>
 </head>
 
@@ -1499,6 +1512,17 @@ day_no_entry: "Geen invoer op deze dag.",
 reconciled: "Verrekend",
 reconciled_remove: "Verrekening verwijderen",
 
+setup_title: "Welkom bij Shift-Tap 👋",
+setup_intro: "Werkuren, recup en overuren zonder gedoe. Stel eerst even je basisinstellingen in.",
+setup_lang: "Taal",
+setup_normday: "Normale werkdag (uren)",
+setup_norm_hint: "Voorbeeld: 07:30 of 08:00",
+setup_pause: "Pauze (minuten)",
+setup_pause_hint: "Dit is uw standaard pauze, deze wordt automatisch afgetrokken.",
+setup_note: "Je kan deze instellingen later altijd aanpassen bij Instellingen.",
+setup_done: "Klaar voor gebruik",
+
+
 
       err_start_saldo_format: "Start saldo moet in formaat u:min zijn, bv 60:00",
       err_normday_format: "Norm dag moet in formaat u:min zijn, bv 7:30",
@@ -1645,6 +1669,16 @@ en: {
   edit_aria: "Edit",
   note_label: "Note",
   
+  setup_title: "Welcome to Shift-Tap 👋",
+setup_intro: "Work hours, recup and overtime without hassle. First set your basic settings.",
+setup_lang: "Language",
+setup_normday: "Normal workday",
+setup_norm_hint: "Example: 07:30 or 08:00",
+setup_pause: "Break (minutes)",
+setup_pause_hint: "This is your default break, it is deducted automatically.",
+setup_note: "You can always change these settings later in Settings.",
+setup_done: "Ready to use",
+  
   calendar_info: "Here you get a daily overview. You can see when you had a comp day, sick leave, vacation, public holiday or worked.\nSettlements are indicated with a green dot.\nTap a day to view details or add an entry.",
   settle_info: "Use this button when overtime hours have been paid out. The entered number of hours will be deducted from your overtime balance.",
   norm_day_info: "This is the number of hours you are expected to work on a normal day. Breaks are not included. Anything above this counts as overtime.",
@@ -1782,6 +1816,16 @@ en: {
   edit_btn: "✎ Modifier",
   edit_aria: "Modifier",
   note_label: "Remarque",
+  
+  setup_title: "Bienvenue sur Shift-Tap 👋",
+setup_intro: "Heures, récup et heures supplémentaires sans tracas. Configure d'abord tes paramètres de base.",
+setup_lang: "Langue",
+setup_normday: "Journée de travail normale",
+setup_norm_hint: "Exemple : 07:30 ou 08:00",
+setup_pause: "Pause (minutes)",
+setup_pause_hint: "Ceci est votre pause standard, elle est déduite automatiquement.",
+setup_note: "Vous pouvez toujours modifier ces paramètres plus tard dans Paramètres.",
+setup_done: "Prêt à l'emploi",
   
   calendar_info: "Ici tu as une vue par jour. Tu vois quand tu avais un jour de récup, maladie, vacances, jour férié ou travaillé.\nLes régularisations sont indiquées par un point vert.\nAppuie sur un jour pour voir les détails ou ajouter une entrée.",
   settle_info: "Utilise ce bouton lorsque des heures supplémentaires ont été payées. Le nombre d’heures saisi sera déduit de ton solde d’heures supplémentaires.",
@@ -3721,6 +3765,12 @@ if (setupBtn) {
     state.settings = state.settings || {};
     state.settings.normMinutes = (hh * 60) + mm;
     state.settings.pauseMinutes = pauseMin;
+    
+      // TAAL OPSLAAN
+  const lang = document.getElementById("setupLang")?.value || "nl";
+  state.settings.lang = lang;
+  localStorage.setItem("lang", lang);
+  currentLang = lang;
 
     saveState();
     markSetupDone();
@@ -3806,33 +3856,49 @@ init();
 </button>
 
 <!-- ===== SETUP MODAL START ===== -->
-    <div class="appModalOverlay" id="setupOverlay" style="display:none;" aria-hidden="true">
+<div class="appModalOverlay" id="setupOverlay" style="display:none;" aria-hidden="true">
   <div class="appModal" role="dialog" aria-modal="true">
     
     <div class="appModalBody">
-      <h2>Welkom bij Shift-Tap 👋</h2>
-      <p>
+      <h2 data-i18n="setup_title">Welkom bij Shift-Tap 👋</h2>
+
+      <p data-i18n="setup_intro">
         Werkuren, recup en overuren zonder gedoe.
-       <br> Stel eerst even je basisinstellingen in.
+        <br> Stel eerst even je basisinstellingen in.
       </p>
+
+      <div class="setupLangRow">
+        <label for="setupLang" class="setupLangLabel" data-i18n="setup_lang">Taal</label>
+        <select id="setupLang" class="setupLangSelect">
+          <option value="nl">Nederlands</option>
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+        </select>
+      </div>
 
       <hr style="margin:15px 0; opacity:.2;">
 
       <!-- grid -->
       <div class="setupGrid">
+
         <div class="setupField">
-          <label for="setupNormHours">Normale werkdag (uren)</label>
+          <label for="setupNormHours" data-i18n="setup_normday">Normale werkdag (uren)</label>
+
           <input
             type="time"
             id="setupNormHours"
-           value="07:30"
-           step="60">
-            <div class="setupHint">Voorbeeld: 07:30 of 08:00</div>
+            value="07:30"
+            step="60">
+
+          <div class="setupHint" data-i18n="setup_norm_hint">
+            Voorbeeld: 07:30 of 08:00
+          </div>
         </div>
 
 
         <div class="setupField">
-          <label for="setupPauseMin">Pauze (minuten)</label>
+          <label for="setupPauseMin" data-i18n="setup_pause">Pauze (minuten)</label>
+
           <input
             type="number"
             id="setupPauseMin"
@@ -3840,17 +3906,22 @@ init();
             min="0"
             inputmode="numeric"
             placeholder="bv. 30">
-          <div class="setupHint">Dit is u standaard pauze, deze wordt automatisch afgetrokken. </div>
+
+          <div class="setupHint" data-i18n="setup_pause_hint">
+            Dit is uw standaard pauze, deze wordt automatisch afgetrokken.
+          </div>
         </div>
+
       </div>
 
-      <p class="setupNote">
+      <p class="setupNote" data-i18n="setup_note">
         Je kan deze instellingen later altijd aanpassen bij Instellingen.
       </p>
+
     </div>
 
     <div class="appModalActions">
-      <button type="button" class="btnGreen" id="btnSetupStart">
+      <button type="button" class="btnGreen" id="btnSetupStart" data-i18n="setup_done">
         Klaar voor gebruik
       </button>
     </div>
@@ -3858,6 +3929,5 @@ init();
   </div>
 </div>
 <!-- ===== SETUP MODAL END ===== -->
-
 </body>
 </html>
