@@ -3695,31 +3695,41 @@ if(vEl) vEl.textContent = "v" + APP_VERSION;
   }
 
   // ===== SETUP START BUTTON =====
-  const setupBtn = document.getElementById("btnSetupStart");
-  if(setupBtn){
-    setupBtn.addEventListener("click", () => {
+const setupBtn = document.getElementById("btnSetupStart");
+if (setupBtn) {
+  setupBtn.addEventListener("click", () => {
 
-      const normHours = parseFloat(document.getElementById("setupNormHours")?.value);
-      const pauseMin  = parseInt(document.getElementById("setupPauseMin")?.value);
+    const time = document.getElementById("setupNormHours")?.value;
+    const pauseMin = parseInt(document.getElementById("setupPauseMin")?.value, 10);
 
-      if(isNaN(normHours) || isNaN(pauseMin)){
-        alert("Vul beide velden correct in.");
-        return;
-      }
+    if (!time || Number.isNaN(pauseMin)) {
+      alert("Vul beide velden correct in.");
+      return;
+    }
 
-      state.settings = state.settings || {};
-      state.settings.normMinutes = Math.round(normHours * 60);
-      state.settings.pauseMinutes = pauseMin;
+    const [h, m] = time.split(":");
+    const hh = parseInt(h, 10);
+    const mm = parseInt(m, 10);
 
-      saveState();
-      markSetupDone();
+    if (Number.isNaN(hh) || Number.isNaN(mm)) {
+      alert("Vul beide velden correct in.");
+      return;
+    }
 
-      const overlay = document.getElementById("setupOverlay");
-      if(overlay) overlay.style.display = "none";
+    state.settings = state.settings || {};
+    state.settings.normMinutes = (hh * 60) + mm;
+    state.settings.pauseMinutes = pauseMin;
 
-      location.reload();
-    });
-  }
+    saveState();
+    markSetupDone();
+
+    const overlay = document.getElementById("setupOverlay");
+    if (overlay) overlay.style.display = "none";
+
+    location.reload();
+  });
+}
+
 init();
 });
 })();
@@ -3811,15 +3821,13 @@ init();
         <div class="setupField">
           <label for="setupNormHours">Normale werkdag (uren)</label>
           <input
-            type="number"
+            type="time"
             id="setupNormHours"
-            step="0.25"
-            min="0"
-            inputmode="decimal"
-            placeholder="bv. 7.5">
-          <div class="setupHint">Voorbeeld: 7.5 = 7u30</div>
+           value="07:30"
+           step="60">
+            <div class="setupHint">Voorbeeld: = 07u30 of 08:00</div>
         </div>
-
+<nr>
         <div class="setupField">
           <label for="setupPauseMin">Pauze (minuten)</label>
           <input
@@ -3829,7 +3837,7 @@ init();
             min="0"
             inputmode="numeric"
             placeholder="bv. 30">
-          <div class="setupHint">Wordt automatisch afgetrokken bij berekening.</div>
+          <div class="setupHint">Dit is u standaard pauze, deze wordt automatisch afgetrokken. </div>
         </div>
       </div>
 
