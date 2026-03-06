@@ -3711,6 +3711,8 @@ if(!isSetupDone()){
   state.settings = state.settings || {};
   state.settings.lang = currentLang;
   localStorage.setItem("lang", currentLang);
+  
+  applyLang();
 
   try{
     await handleRedirectLoginResult();
