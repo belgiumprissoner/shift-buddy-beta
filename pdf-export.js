@@ -346,9 +346,6 @@ it: {
   }
 
   btnExportPdf.addEventListener("click", () => {
-
-  alert("PDF klik werkt");
-
   const state = loadState();
   fillMonthSelect(state);
 
@@ -357,11 +354,7 @@ it: {
   if(rMonth) rMonth.checked = true;
 
   syncModeUI();
-
   defaultRangeToMonth(monthSelect.value || "");
-
-  alert("Voor showModal");
-
   dlg.showModal();
 });
 
