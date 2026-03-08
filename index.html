@@ -792,6 +792,9 @@ input::-webkit-calendar-picker-indicator{ filter: invert(1); }
   cursor:pointer;
   color:white;
 }
+.calToday{
+  box-shadow: 0 0 0 2px rgba(255,255,255,.8);
+}
 .calDotVerrek{
   position:absolute;
   top:3px;
@@ -3502,16 +3505,21 @@ function renderCalendar(){
     const dateStr = ymd(dateObj);
     const e = entryForDate(dateStr);
 
-    const cell = document.createElement("div");
+const cell = document.createElement("div");
 
-    // class + kleur
-    cell.className = "calCell";
-    if(e){
-      const cls = calClassForType(e.type);
-      if(cls) cell.classList.add(cls);
-    }else{
-      cell.classList.add("calEmpty");
-    }
+// class + kleur
+cell.className = "calCell";
+
+if(dateStr === ymd(new Date())){
+  cell.classList.add("calToday");
+}
+
+if(e){
+  const cls = calClassForType(e.type);
+  if(cls) cell.classList.add(cls);
+}else{
+  cell.classList.add("calEmpty");
+}
 
     // type letter
     const pill = e ? `<div class="calTypePill">${typeAbbr(e.type)}</div>` : "";
