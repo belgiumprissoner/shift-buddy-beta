@@ -33,34 +33,57 @@
     noLogsTime: "20:00"
   };
 
-  function getNotifSettings() {
-    const s = (window.state && window.state.settings) ? window.state.settings : {};
+
+
+  function isNotificationSupported() {
+    return ("Notification" in window) && ("serviceWorker" in navigator);
+  }
+function getNotifSettings() {
+  try {
+    const storeKey = window.SHIFTTAP_STORE_KEY;
+    if (!storeKey) return { ...NOTIF_DEFAULTS };
+
+    const raw = localStorage.getItem(storeKey);
+    if (!raw) return { ...NOTIF_DEFAULTS };
+
+    const parsed = JSON.parse(raw);
+    const s = parsed?.settings || {};
+
     return {
       enabled: typeof s.notificationsEnabled === "boolean" ? s.notificationsEnabled : NOTIF_DEFAULTS.enabled,
       startCheckTime: s.notificationsStartCheckTime || NOTIF_DEFAULTS.startCheckTime,
       forgotCheckoutTime: s.notificationsForgotCheckoutTime || NOTIF_DEFAULTS.forgotCheckoutTime,
       noLogsTime: s.notificationsNoLogsTime || NOTIF_DEFAULTS.noLogsTime
     };
+  } catch (err) {
+    console.error("Notif settings lezen mislukt:", err);
+    return { ...NOTIF_DEFAULTS };
   }
+}
 
-  function setNotifSettings(next) {
-    if (!window.state) return;
-    if (!window.state.settings) window.state.settings = {};
-
-    window.state.settings.notificationsEnabled = !!next.enabled;
-    window.state.settings.notificationsStartCheckTime = next.startCheckTime || NOTIF_DEFAULTS.startCheckTime;
-    window.state.settings.notificationsForgotCheckoutTime = next.forgotCheckoutTime || NOTIF_DEFAULTS.forgotCheckoutTime;
-    window.state.settings.notificationsNoLogsTime = next.noLogsTime || NOTIF_DEFAULTS.noLogsTime;
-
-    if (typeof window.saveState === "function") {
-      window.saveState();
+function setNotifSettings(next) {
+  try {
+    const storeKey = window.SHIFTTAP_STORE_KEY;
+    if (!storeKey) {
+      console.warn("STORE_KEY niet beschikbaar.");
+      return;
     }
-  }
 
-  function isNotificationSupported() {
-    return ("Notification" in window) && ("serviceWorker" in navigator);
-  }
+    const raw = localStorage.getItem(storeKey);
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed.settings = parsed.settings || {};
 
+    parsed.settings.notificationsEnabled = !!next.enabled;
+    parsed.settings.notificationsStartCheckTime = next.startCheckTime || NOTIF_DEFAULTS.startCheckTime;
+    parsed.settings.notificationsForgotCheckoutTime = next.forgotCheckoutTime || NOTIF_DEFAULTS.forgotCheckoutTime;
+    parsed.settings.notificationsNoLogsTime = next.noLogsTime || NOTIF_DEFAULTS.noLogsTime;
+
+    localStorage.setItem(storeKey, JSON.stringify(parsed));
+    console.log("Notif settings opgeslagen.");
+  } catch (err) {
+    console.error("Notif settings opslaan mislukt:", err);
+  }
+}
   async function requestNotificationPermission() {
     if (!isNotificationSupported()) {
       console.warn("Notifications worden niet ondersteund op dit toestel/browser.");
@@ -181,6 +204,8 @@ async function saveMessagingToken(token) {
       console.warn("Geen messaging token beschikbaar.");
       return;
     }
+
+await saveMessagingToken(token);    
 
     console.log("Notifications basis staat klaar.");
   }
