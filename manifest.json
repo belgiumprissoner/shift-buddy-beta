@@ -1,19 +1,22 @@
 {
   "name": "Shift-Tap",
   "short_name": "Shift-Tap",
-  "start_url": "./index.html",
-  "scope": "./",
+  "description": "Werkuren tracker voor uren, overuren, recup, kalender en PDF-export.",
+  "id": "/shift-tap-live-pwa/",
+  "start_url": "/shift-tap-live-pwa/",
+  "scope": "/shift-tap-live-pwa/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#12070b",
   "theme_color": "#12070b",
   "icons": [
     {
-      "src": "ST-logo.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "ST-logo.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

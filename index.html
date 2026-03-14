@@ -3,11 +3,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Shift-Tap</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#12070b">
+  <title>SHIFT-TAP</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="ST-logo.png">
+
+  <meta name="theme-color" content="#12070b">
+
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 
 <style>
+
+.app-title-wrap h1{
+  font-family:'Russo One', sans-serif;
+  text-transform:uppercase;
+  transform:skewX(-12deg);
+  
+  margin-top:1px;
+  font-size:36px;
+  line-height:0.2;
+  
+  color:#f2f2f2;
+  font-weight:800;
+  letter-spacing:2px;
+
+  text-shadow:
+    0 0 4px rgba(255,40,40,0.9),
+    0 0 10px rgba(255,0,0,0.7),
+    0 2px 6px rgba(0,0,0,0.85),
+    0 5px 12px rgba(0,0,0,0.8);
+}
+
 :root{
   --bg:#14080b;
   --panel:rgba(255,255,255,.06);
@@ -163,16 +189,22 @@ body{
 .top{
   display:flex;
   align-items:flex-end;
-  justify-content:space-between;
+  
   gap:12px;
   flex-wrap:wrap;
   margin-bottom:14px;
   width:100%;
 }
-  .title{min-width:0; width:100%;}
-  .title h1{margin:0; font-size:34px; line-height:1.05; letter-spacing:.2px}
+.title{
+  min-width:0;
+  width:100%;
+}
 
-.sub{ margin-top:6px; font-size:14px; opacity:.75; }
+.sub{
+  margin-top:-2px;
+  font-size:12px;
+  opacity:.7;
+}
 
 .app-header{
   display:flex;
@@ -183,24 +215,19 @@ body{
 .app-header-left{
   display:flex;
   gap:14px;
-  align-items:flex-start;
-  width:100%;
+  align-items:center;
   min-width:0;
 }
 .app-logo{
-  width:52px;
-  height:52px;
+  width:60px;
+  height:60px;
   object-fit:contain;
   border-radius:12px;
   flex-shrink:0;
-  margin-top:4px;
+  margin-top:0px;
 }
-.app-title-wrap{ display:flex; flex-direction:column; min-width:0; }
-.app-title-wrap h1{
-  margin:0;
-  font-size:36px;
-  line-height:1.05;
-  word-break:break-word;
+.app-title-wrap{ display:flex; flex-direction:column; min-width:0; 
+
 }
 
 .btnIcon{
@@ -925,10 +952,18 @@ margin-bottom: 16px;
   line-height:1;
   transform:translateY(-1px);
 }
+.weekLock{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px;
+}
+
 .weekLock img{
   width:20px;
   height:20px;
   vertical-align:middle;
+  pointer-events:none;
 }
 .h2Row{
   position:relative;
@@ -955,6 +990,88 @@ margin-bottom: 16px;
 #bubbleWeekLock{
   transform:translateX(-40px);
 }
+.historyList > div{
+  display:flex;
+  align-items:center;
+}
+.historyList > div span:last-child{
+  margin-left:auto;
+}
+button,
+.btnSmall,
+.btnGhost,
+.btnGreen,
+.btnDanger,
+.btnIcon{
+  transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+}
+
+button:active,
+.btnSmall:active,
+.btnGhost:active,
+.btnGreen:active,
+.btnDanger:active,
+.btnIcon:active{
+  transform: translateY(2px) scale(0.94);
+  filter: brightness(.92);
+  box-shadow: 0 3px 8px rgba(0,0,0,.18);
+}
+
+#btnHome:active,
+#btnOpenHistory:active,
+#btnNavCalendar:active,
+#btnOpenSettings:active{
+  transform:scale(0.97);
+}
+
+#btnHome.active,
+#btnOpenHistory.active,
+#btnNavCalendar.active,
+#btnOpenSettings.active{
+  background:rgba(255,255,255,0.18);
+  box-shadow:0 0 8px rgba(255,255,255,0.35);
+  border-radius:10px;
+}
+#btnVerreken:active,
+#btnAddManual:active{
+  transform: translateY(2px) scale(0.94) !important;
+  filter: brightness(.85) !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,.18) !important;
+}
+#btnVerreken,
+#btnAddManual{
+  transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+}
+.bigTimer{
+  color:#D4AF37;
+  letter-spacing:2px;
+  text-shadow:
+    0 2px 2px rgba(0,0,0,.6),
+    0 6px 10px rgba(0,0,0,.7),
+    0 14px 28px rgba(0,0,0,.8);
+}
+.bigTimer{
+  transform: skewX(-8deg);
+}
+#todayWork,
+#vacTaken,
+#weekWork{
+  color:#c0c0c0;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.6),
+    0 6px 12px rgba(0,0,0,.7);
+}
+.btnStart,
+.btnPause,
+.btnSave,
+.btnRecup{
+  border:1px solid rgba(255,255,255,0.22);
+  box-shadow:
+    inset 0 1px 3px rgba(255,255,255,0.15),
+    0 3px 8px rgba(0,0,0,0.28);
+}
+
+
 </style>
 </head>
 
@@ -1084,7 +1201,7 @@ margin-bottom: 16px;
         <span class="info-icon" id="infoWeekLock">ⓘ</span>
 
         <img src="lock_open.svg" class="lockMini" alt="">
-        <img src="lock_close.svg" class="lockMini" alt="">
+
 
         <div class="info-bubble"
              id="bubbleWeekLock"
@@ -2235,7 +2352,7 @@ en: {
 
   cloud_restore_confirm: "Cloud → device: this will overwrite the data on this device. Continue?",
   cloud_to_device_success: "Cloud → device successful",
-
+confirm_delete_entry: "Delete this entry?",
   download_running: "Downloading...",
   upload_running: "Uploading..."
  
@@ -3107,7 +3224,7 @@ week_lock_info: "Vert = ouvert.<br>Rouge = verrouillé.<br>Suppression et modifi
 
   cloud_backup_success: "Sauvegarde cloud réussie",
   cloud_upload_failed: "Échec de l’envoi vers le cloud",
-
+confirm_delete_entry: "Supprimer cette entrée ?",
   cloud_download_failed: "Échec du téléchargement depuis le cloud",
   cloud_backup_invalid: "La sauvegarde cloud est invalide.",
   cloud_backup_not_found: "Aucune sauvegarde cloud trouvée.",
@@ -3121,8 +3238,9 @@ week_lock_info: "Vert = ouvert.<br>Rouge = verrouillé.<br>Suppression et modifi
 }
   };
   function checkMissingTranslations(){
-  const base = LANG.nl;   // NL is de master
+  const base = LANG.nl;
   const langs = Object.keys(LANG);
+  let result = "";
 
   langs.forEach(lang=>{
     if(lang === "nl") return;
@@ -3136,11 +3254,13 @@ week_lock_info: "Vert = ouvert.<br>Rouge = verrouillé.<br>Suppression et modifi
     });
 
     if(missing.length){
-      console.warn("❌ Missing translations in", lang, ":", missing);
+      result += "❌ " + lang + ": " + missing.join(", ") + "\n";
     }else{
-      console.log("✅", lang, "OK");
+      result += "✅ " + lang + " OK\n";
     }
   });
+
+  alert(result);
 }
 
 /* =========================
@@ -3557,10 +3677,25 @@ const mEndM   = document.getElementById("mEndM");
   /* =========================
      Tabs navigation
      ========================= */
+     function updateNavActive(tabId){
+  const navMap = {
+    tab1: document.getElementById("btnHome"),
+    tab2: document.getElementById("btnOpenHistory"),
+    tab3: document.getElementById("btnNavCalendar"),
+    tab4: document.getElementById("btnOpenSettings")
+  };
+
+  Object.values(navMap).forEach(btn => btn?.classList.remove("active"));
+  navMap[tabId]?.classList.add("active");
+}
+
   function showTab(id){
     document.querySelectorAll(".tab").forEach(t => t.style.display = "none");
     const target = document.getElementById(id);
     if(target) target.style.display = "block";
+    
+    updateNavActive(id);
+    
   }
   /* ===== Dag-detail (UI refs) ===== */
 const dayOverlay  = document.getElementById("dayOverlay");
@@ -4677,8 +4812,7 @@ function renderHistory(){
     const wrap = document.createElement("div");
     wrap.style.marginTop = "12px";
 
-    const head = document.createElement("button");
-    head.type = "button";
+    const head = document.createElement("div");
     head.className = "btnGhost";
     head.style.display = "flex";
     head.style.justifyContent = "space-between";
@@ -4688,38 +4822,37 @@ function renderHistory(){
     head.innerHTML = `
 <span>${t("week")} ${group.week}</span>
 
-<span class="weekLock" data-week="${group.key}" style="cursor:pointer;">
-${isWeekLocked(group.key)
- ? '<img src="lock_close.svg" style="width:20px;height:20px;">'
- : '<img src="lock_open.svg" style="width:20px;height:20px;">'}
-</span>
+<span style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+  <span class="weekLock" data-week="${group.key}" style="cursor:pointer;">
+    ${isWeekLocked(group.key)
+      ? '<img src="lock_close.svg" style="width:20px;height:20px;">'
+      : '<img src="lock_open.svg" style="width:20px;height:20px;">'}
+  </span>
 
-<span style="opacity:.75;">${group.items.length}</span>
-    `;
+  <span style="opacity:.75;">${group.items.length}</span>
+</span>
+`;
 
     const body = document.createElement("div");
     body.style.display = "none";
 
-    head.addEventListener("click", ()=>{
-      body.style.display = body.style.display === "none" ? "block" : "none";
-    });
-    const lock = head.querySelector(".weekLock");
+  head.addEventListener("click", (ev) => {
+  const lockEl = ev.target.closest(".weekLock, .weekLock img");
+  if (lockEl) {
+    ev.preventDefault();
+    ev.stopPropagation();
 
-lock?.addEventListener("click",(ev)=>{
-  ev.stopPropagation();
+    const weekKey = lockEl.closest(".weekLock").dataset.week;
+    const locked = isWeekLocked(weekKey);
 
-  const weekKey = lock.dataset.week;
-  const locked = isWeekLocked(weekKey);
-
-  if(locked){
-    openConfirm("Week ontgrendelen?", ()=>{
-      toggleWeekLock(weekKey);
-    });
-  }else{
-    openConfirm("Week vergrendelen?", ()=>{
-      toggleWeekLock(weekKey);
-    });
+    openConfirm(
+      locked ? "Week ontgrendelen?" : "Week vergrendelen?",
+      () => toggleWeekLock(weekKey)
+    );
+    return;
   }
+
+  body.style.display = body.style.display === "none" ? "block" : "none";
 });
 
     group.items.forEach(e=>{
@@ -5483,9 +5616,10 @@ document.getElementById("btnLangEs")?.addEventListener("click", () => openSetupA
 document.getElementById("btnLangHu")?.addEventListener("click", () => openSetupAfterLang("hu"));
 document.getElementById("btnLangIt")?.addEventListener("click", () => openSetupAfterLang("it"));
 
-console.log("check start");
-checkMissingTranslations();
-console.log("check done");
+
+
+// checkMissingTranslations();
+
 
 init();
 });
@@ -5695,5 +5829,14 @@ init();
   </div>
 </div>
 <!-- ===== SETUP MODAL END ===== -->
+ <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('Service Worker geregistreerd', reg))
+      .catch(err => console.log('Service Worker fout', err));
+  });
+}
+</script>
 </body>
 </html>
