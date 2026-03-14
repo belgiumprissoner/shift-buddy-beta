@@ -123,7 +123,7 @@ function setNotifSettings(next) {
 
       const token = await messaging.getToken({
         serviceWorkerRegistration: swRegistration,
-        vapidKey: "BCIV4yvt5RgDpP35WV9gpl6QdFH7iEyfb1koZZOWccwKJhWZCOB_Uc4GreqBrGWgoZFhkq653x6h8RXSliXCutA"
+        vapidKey: "BClV4yvt5RgDpP35WV9gpI6QdFH7iEyfb1koZZOWccwKJhWZCOB_Uc4GreqBrGWgoZFhkq653x6h8RXSliXCutA"
       });
 
       if (token) {
