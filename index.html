@@ -4347,25 +4347,79 @@ function hmFromMinutes(mins){
     elStatus.innerHTML = `<span class="iconBox ${cls}"></span><span>${label}</span>`;
   }
 
-  function startTimer(){
-    if(state.timer.running) return;
-    state.timer.running = true;
-    state.timer.startMs = Date.now();
-    if(!interval) interval = setInterval(()=>{ updateTimerUI(); saveState(); }, 250);
-    setStatus("playing");
-    saveState();
-  }
+async function startTimer(){
+  if(state.timer.running) return;
 
-  function pauseTimer(){
-    if(!state.timer.running) return;
-    const now = Date.now();
-    state.timer.accMs += (now - state.timer.startMs);
-    state.timer.running = false;
-    state.timer.startMs = null;
-    setStatus("paused");
-    updateTimerUI();
-    saveState();
+  state.timer.running = true;
+  state.timer.startMs = Date.now();
+
+  if(!interval) interval = setInterval(()=>{ updateTimerUI(); saveState(); }, 250);
+
+  setStatus("playing");
+  saveState();
+
+  try {
+    if (await ensureFirebase()) {
+      const u = currentUser?.();
+      if (u && fbDb) {
+        const now = new Date();
+        const date = ymd(now);
+        const startTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+        await fbDb
+          .collection("users")
+          .doc(u.uid)
+          .collection("workLogs")
+          .doc(date)
+          .set({
+            date,
+            startTime,
+            stopTime: null,
+            type: "Werk",
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+      }
+    }
+  } catch (err) {
+    console.error("Firestore startTimer save failed:", err);
   }
+}
+
+async function pauseTimer(){
+  if(!state.timer.running) return;
+
+  const now = Date.now();
+  state.timer.accMs += (now - state.timer.startMs);
+  state.timer.running = false;
+  state.timer.startMs = null;
+
+  setStatus("paused");
+  updateTimerUI();
+  saveState();
+
+  try {
+    if (await ensureFirebase()) {
+      const u = currentUser?.();
+      if (u && fbDb) {
+        const date = ymd(new Date(now));
+        const stopTime = `${String(new Date(now).getHours()).padStart(2, "0")}:${String(new Date(now).getMinutes()).padStart(2, "0")}`;
+
+        await fbDb
+          .collection("users")
+          .doc(u.uid)
+          .collection("workLogs")
+          .doc(date)
+          .set({
+            date,
+            stopTime,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+      }
+    }
+  } catch (err) {
+    console.error("Firestore pauseTimer save failed:", err);
+  }
+}
 
   function resetTimer(){
     state.timer.running = false;
@@ -5456,8 +5510,16 @@ elOvertimeSaldo.innerHTML = `
    ========================= */
 
 // Basis knoppen
-btnStart?.addEventListener("click", startTimer);
-btnPause?.addEventListener("click", pauseTimer);
+btnStart?.addEventListener("click", () => {
+  startTimer().catch(err => {
+    console.error("startTimer failed:", err);
+  });
+});
+btnPause?.addEventListener("click", () => {
+  pauseTimer().catch(err => {
+    console.error("pauseTimer failed:", err);
+  });
+});
 btnSave?.addEventListener("click", () => {
   saveWorkEntry().catch(err => {
     console.error("saveWorkEntry failed:", err);
