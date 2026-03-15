@@ -5640,6 +5640,11 @@ function saveNotifSettings(settings) {
   localStorage.setItem("ShiftTapNotifSettings", JSON.stringify(settings));
 }
 
+// Notification settings opslaan
+function saveNotifSettings(settings) {
+  localStorage.setItem("ShiftTapNotifSettings", JSON.stringify(settings));
+}
+
 // Notification settings laden
 function loadNotifSettings() {
   const saved = localStorage.getItem("ShiftTapNotifSettings");
@@ -5653,36 +5658,34 @@ function loadNotifSettings() {
   return null;
 }
 
+init();
 
-  init();
+if (window.ShiftTapNotifications) {
+  const saved = loadNotifSettings();
+  if (saved) ShiftTapNotifications.setSettings(saved);
 
-  if (window.ShiftTapNotifications) {
-    const saved = loadNotifSettings();
-    if (saved) ShiftTapNotifications.setSettings(saved);
+  ShiftTapNotifications.init();
 
-    ShiftTapNotifications.init();
+  const chkNotif = document.getElementById("chkNotifEnabled");
 
-    const chkNotif = document.getElementById("chkNotifEnabled");
+  if (chkNotif) {
+    chkNotif.checked = ShiftTapNotifications.getSettings().enabled;
 
-    if (chkNotif) {
-      chkNotif.checked = ShiftTapNotifications.getSettings().enabled;
+    chkNotif.addEventListener("change", () => {
+      const next = ShiftTapNotifications.getSettings();
+      next.enabled = chkNotif.checked;
 
-      chkNotif.addEventListener("change", () => {
-        const next = ShiftTapNotifications.getSettings();
-        next.enabled = chkNotif.checked;
+      ShiftTapNotifications.setSettings(next);
+      saveNotifSettings(next);
 
-        ShiftTapNotifications.setSettings(next);
-        saveNotifSettings(next);
+      console.log("Notificaties staan nu:", chkNotif.checked);
 
-        console.log("Notificaties staan nu:", chkNotif.checked);
-
-        if (chkNotif.checked && window.ShiftTapNotifications?.init) {
-          window.ShiftTapNotifications.init();
-        }
-      });
-    }
+      if (chkNotif.checked && window.ShiftTapNotifications?.init) {
+        window.ShiftTapNotifications.init();
+      }
+    });
   }
-
+}
 </script>
 
 <!-- ===== PDF EXPORT DIALOG ===== -->
